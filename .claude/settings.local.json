@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init)",
+      "Bash(git branch -M main)",
+      "Bash(git add -A)",
+      "Bash(git commit:*)",
+      "Bash(git remote add origin https://github.com/NexeraDigital/agentFactory.git)",
+      "Bash(git push -u origin main)"
+    ]
+  }
+}
