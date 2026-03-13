@@ -30,10 +30,10 @@ This project follows the **IDesign** layered service architecture. For full meth
 
 | Layer | Responsibility | Naming Convention |
 |-------|---------------|-------------------|
-| Controllers | HTTP routing, request/response mapping | `*Controller` |
-| Managers | Use-case orchestration (nouns) | `*Manager` |
-| Engines | Reusable business rules (verbs) | `*Engine` |
-| Accessors | Data/resource access (business verbs) | `*Accessor` |
+| Clients | Presentation, HTTP routing, request/response mapping | `*Controller`, `*Client` |
+| Managers | Use-case orchestration (nouns); near-expendable | `*Manager` |
+| Engines | Reusable business rules (verbs); rare | `*Engine` |
+| Resource Access | Data/resource access (business verbs, NOT CRUDs) | `*Accessor` |
 | Utilities | Cross-cutting concerns | `*Helper`, `*Extensions` |
 
 ## Tech Stack
