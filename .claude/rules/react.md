@@ -1,6 +1,8 @@
 ---
 description: "React/TypeScript architecture rules. Enforces component patterns, state management, and frontend best practices."
-globs: <!-- ADAPT: e.g. "**/*.tsx", "**/*.ts" — set to your frontend file patterns -->
+paths: # ADAPT: adjust to your frontend file patterns
+  - "**/*.tsx"
+  - "**/*.jsx"
 ---
 
 # React Architecture Rules

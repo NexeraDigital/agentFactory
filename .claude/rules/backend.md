@@ -1,5 +1,6 @@
 ---
-description: "Backend code quality rules applied to all files. Enforces SOLID principles, error handling patterns, and API design standards for server-side code."
+description: "Backend code quality rules. Enforces SOLID principles, error handling patterns, and API design standards for server-side code."
+# ADAPT: add paths: to scope to your backend file patterns (e.g. ["**/*.cs"])
 ---
 
 # Backend Rules

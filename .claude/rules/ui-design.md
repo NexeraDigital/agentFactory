@@ -1,6 +1,10 @@
 ---
 description: "UI/UX design rules for modern enterprise interfaces. Enforces design system consistency, visual hierarchy, and accessibility standards."
-globs: <!-- ADAPT: e.g. "**/*.tsx", "**/*.css" — set to your frontend/styling file patterns -->
+paths: # ADAPT: adjust to your frontend/styling file patterns
+  - "**/*.tsx"
+  - "**/*.jsx"
+  - "**/*.css"
+  - "**/*.scss"
 ---
 
 # UI Design Rules

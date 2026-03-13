@@ -157,10 +157,10 @@ Typical questions (only ask what's unknown):
 For each rules file in the confirmed profile:
 
 1. Fetch the template from agentFactory `.claude/rules/<rule-name>.md`
-2. Replace `<!-- ADAPT -->` paths with project-specific globs:
-   - React detected? → `react.md` globs: `**/*.tsx`, `**/*.ts`
-   - C# detected? → `code-cleanliness.md` globs: `**/*.cs`, `**/*.tsx`, `**/*.ts`
-   - Python detected? → `code-cleanliness.md` globs: `**/*.py`
+2. Replace `# ADAPT` paths in frontmatter with project-specific `paths:` values:
+   - React detected? → `react.md` paths: `["**/*.tsx", "**/*.ts"]`
+   - C# detected? → `backend.md` paths: `["**/*.cs"]`
+   - Python detected? → add equivalent paths for `**/*.py`
 3. Replace `<!-- ADAPT -->` content sections with project-specific patterns
 4. Write to target project's `.claude/rules/`
 

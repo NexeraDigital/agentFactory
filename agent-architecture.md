@@ -260,7 +260,7 @@ The enforcement architecture creates four layers of quality gates, from zero-cos
 
 | Layer | Mechanism | When It Fires | What It Catches |
 |-------|-----------|---------------|-----------------|
-| **1. Rules** | `.claude/rules/*.md` with `globs:` frontmatter | Auto-loaded when matching files are in context | Domain-specific patterns (React anti-patterns, SQL anti-patterns, etc.) |
+| **1. Rules** | `.claude/rules/*.md` with `paths:` frontmatter | Auto-loaded when matching files are in context | Domain-specific patterns (React anti-patterns, SQL anti-patterns, etc.) |
 | **2. Pre-commit** | `templates/hooks/pre-commit` via Husky or git hooks | On `git commit` (any editor, any developer) | Cross-file violations, non-Claude edits, cumulative growth — blocks commit on CRITICAL |
 | **3. Skills** | `/review-cleanliness` batch review | On demand (before commit, during review) | Comprehensive cleanliness sweep of staged changes |
 | **4. Agents** | Specialized agents in `.claude/agents/` | During planning and design sessions | Architectural decisions, security audits, design guidance |

@@ -1,6 +1,6 @@
 ---
 description: "Azure Table Storage / Cosmos DB Table API rules. Enforces partition key design, query performance, and NoSQL data modeling patterns."
-globs: <!-- ADAPT: e.g. "**/*.cs" — set to your data access file patterns -->
+# ADAPT: add paths: to scope to your data access file patterns (e.g. ["**/*.cs"])
 ---
 
 # Table Storage Rules

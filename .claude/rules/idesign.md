@@ -1,5 +1,6 @@
 ---
-description: "IDesign architecture rules applied to all files. Enforces layer definitions, forbidden dependencies, and service boundary rules for IDesign methodology."
+description: "IDesign architecture rules. Enforces layer definitions, forbidden dependencies, and service boundary rules for IDesign methodology."
+# ADAPT: add paths: to scope to your backend file patterns (e.g. ["**/*.cs"])
 ---
 
 # IDesign Architecture Rules
