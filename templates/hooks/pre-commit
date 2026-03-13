@@ -192,7 +192,12 @@ Be concise. Only flag genuine violations, not style preferences." 2>/dev/null) |
 
 # ─── Static Pattern Scan (deterministic, runs before AI) ─────────────────────
 
-STAGED_DIFF=$(git diff --cached --)
+CODE_FILES=$(echo "$STAGED_FILES" | grep -E '\.(cs|ts|tsx|js|jsx|py|go|java|sql|css|scss)$' || true)
+if [ -n "$CODE_FILES" ]; then
+  STAGED_DIFF=$(echo "$CODE_FILES" | xargs git diff --cached --)
+else
+  STAGED_DIFF=""
+fi
 
 static_scan() {
   local violations=""
