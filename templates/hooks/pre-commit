@@ -149,7 +149,30 @@ if [ -n "$SECURITY_FILES" ]; then
 
   SECURITY_DIFF=$(echo "$SECURITY_FILES" | xargs git diff --cached --)
 
-  SENTINEL_RESULT=$(claude --print -p "You are Sentinel, a security review gate. Review this staged diff for CRITICAL security violations only.
+  # Load security baseline if it exists
+  BASELINE=""
+  if [ -f ".claude/security-baseline.md" ]; then
+    BASELINE=$(cat .claude/security-baseline.md)
+  fi
+
+  BASELINE_CONTEXT=""
+  if [ -n "$BASELINE" ]; then
+    BASELINE_CONTEXT="
+TASK 2 — REGRESSION CHECK:
+The following security baseline contains known findings. Check whether this diff re-introduces
+any pattern from an Active finding. Ignore Exempted findings — they are intentionally accepted.
+
+Security Baseline:
+$BASELINE
+
+If regressions found: Start with 'CRITICAL:' and reference the SENT-xxx ID(s)
+"
+  fi
+
+  SENTINEL_RESULT=$(claude --print -p "You are Sentinel, a security review gate. You have two tasks.
+
+TASK 1 — NEW VIOLATIONS:
+Review this staged diff for CRITICAL security violations only.
 
 Focus on:
 - SEC-001: Direct entity lookups without user scoping (BOLA/IDOR)
@@ -160,9 +183,9 @@ Focus on:
 
 Diff:
 $SECURITY_DIFF
-
+$BASELINE_CONTEXT
 Response format:
-- If CRITICAL security violations: Start with 'CRITICAL:' then list each with rule ID
+- If CRITICAL security violations or regressions: Start with 'CRITICAL:' then list each with rule ID (and SENT-xxx ID for regressions)
 - If only concerns: Start with 'WARNING:' then list
 - If clean: 'PASS: No security violations found'
 

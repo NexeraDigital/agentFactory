@@ -36,7 +36,7 @@ These are the files to fetch from the agentFactory repo:
 - `templates/hooks/pre-commit`
 
 **Other:**
-- `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`
+- `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`, `.claude/security-baseline.md`
 
 ### How to Fetch Templates
 
@@ -260,6 +260,9 @@ Fetch CLAUDE.md template, then create or update for target project:
 - Remove `<!-- ADAPT -->` markers for agents/rules not in the profile
 - Add project-specific context from discovery
 - Keep under ~35 lines
+
+**Security Baseline:**
+Create `.claude/security-baseline.md` from the template in agentFactory. This file tracks sentinel findings persistently and is used by the pre-commit hook for regression checks.
 
 **Reference Docs:**
 - `docs/design-system.md` — only if frontend agents included; fetch template, customize with project's design tokens
