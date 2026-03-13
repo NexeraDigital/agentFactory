@@ -240,7 +240,7 @@ Not every project needs all ten agents. Select the profile that matches your pro
 
 ## Adaptation Guide
 
-Run `/bootstrap` in a target project to automatically set up the complete `.claude/` ecosystem. The bootstrap skill:
+Run `/bootstrap-agents` in a target project to automatically set up the complete `.claude/` ecosystem. The bootstrap skill:
 
 1. **Reads all templates** — agents, rules, skills, hooks, CLAUDE.md
 2. **Auto-detects the project** — backend, frontend, infrastructure, data persistence, testing
@@ -252,7 +252,7 @@ Run `/bootstrap` in a target project to automatically set up the complete `.clau
 8. **Creates memory, CLAUDE.md, reference docs** — with two-tier memory guidance
 9. **Presents verification summary** — lists everything created with the four-layer architecture
 
-The bootstrap skill is defined in `.claude/skills/bootstrap/SKILL.md`.
+The bootstrap skill is defined in `.claude/skills/bootstrap-agents/SKILL.md`.
 
 ### Three-Layer Review Architecture
 
@@ -267,7 +267,7 @@ The migration from a dedicated code-cleanliness agent to a rules-based system cr
 
 ### Manual Setup
 
-If you prefer manual setup over `/bootstrap`, the template files are organized as:
+If you prefer manual setup over `/bootstrap-agents`, the template files are organized as:
 
 ```
 .claude/

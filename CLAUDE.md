@@ -1,6 +1,6 @@
 # Agent Factory
 
-Template repository for bootstrapping specialized AI agent architectures into new projects. Run `/bootstrap` to set up the complete `.claude/` ecosystem in a target project.
+Template repository for bootstrapping specialized AI agent architectures into new projects. Run `/bootstrap-agents` to set up the complete `.claude/` ecosystem in a target project.
 
 ## Universal Rules
 
@@ -37,7 +37,7 @@ Template repository for bootstrapping specialized AI agent architectures into ne
 
 | Skill | Purpose |
 |-------|---------|
-| `/bootstrap` | Bootstrap the agent architecture into a new project |
+| `/bootstrap-agents` | Bootstrap the agent architecture into a new project |
 | `/debug-investigate` | Route to debug-investigator for any bug/error |
 | `/clarify-data` | Route to data-clarifier for data-heavy UI design |
 | `/review-cleanliness` | Batch review staged changes for code cleanliness |

@@ -1,8 +1,8 @@
 ---
-name: bootstrap
+name: bootstrap-agents
 description: "Bootstrap the complete agent architecture into a new project. Detects tech stack, creates rules, agents, hooks, skills, memory, and CLAUDE.md."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, mcp__github-server__get_file_contents
 ---
 
 # Agent Architecture Bootstrap
@@ -11,18 +11,44 @@ You are about to set up a complete team of specialized AI agents for this projec
 
 ## Source Materials
 
-The agent methodology and templates live in the agentFactory repository:
+The agent methodology and templates live in the **agentFactory** GitHub repository: `NexeraDigital/agentFactory`
 
-- `agent-architecture.md` — The methodology document defining roles, workflow stages, RACI chart, and project profiles
-- `.claude/agents/` — Agent template files with `<!-- ADAPT -->` markers
-- `.claude/rules/` — Rules template files with `<!-- ADAPT -->` markers
-- `.claude/skills/` — Skill template files
-- `.claude/settings.json` — Hook configuration template
-- `CLAUDE.md` — CLAUDE.md template
-- `docs/design-system.md` — Design system reference template
-- `docs/architecture.md` — Architecture overview template
+### Template Manifest
 
-**Read ALL templates before proceeding.** You need the full methodology to make good customization decisions.
+These are the files to fetch from the agentFactory repo:
+
+**Methodology:**
+- `agent-architecture.md`
+
+**Agents** (`.claude/agents/`):
+- `backend-architect.md`, `react-architect.md`, `sentinel.md`, `idesign-architect.md`
+- `sql-data-architect.md`, `table-storage-architect.md`, `modern-ui-agent.md`
+- `azure-architect.md`, `data-clarifier.md`, `debug-investigator.md`
+
+**Rules** (`.claude/rules/`):
+- `universal.md`, `security-universal.md`, `backend.md`, `idesign.md`
+- `react.md`, `sql.md`, `table-storage.md`, `ui-design.md`, `code-cleanliness.md`
+
+**Skills** (`.claude/skills/`):
+- `debug-investigate/SKILL.md`, `clarify-data/SKILL.md`, `review-cleanliness/SKILL.md`
+
+**Other:**
+- `.claude/settings.json`, `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`
+
+### How to Fetch Templates
+
+**If running from a local clone of agentFactory:** Read files directly using the `Read` tool.
+
+**If running in a target project (no local templates):** Fetch templates from GitHub using the `mcp__github-server__get_file_contents` tool:
+```
+owner: "NexeraDigital"
+repo: "agentFactory"
+path: "<file path from manifest above>"
+```
+
+Fetch templates in batches — start with `agent-architecture.md` to understand the methodology, then fetch agent/rules/skill templates as needed during the creation phases.
+
+**Read the methodology and all relevant templates before proceeding.**
 
 ## Bootstrap Procedure
 
@@ -32,9 +58,9 @@ Execute these phases in order. Do not skip phases. Do not make assumptions — v
 
 ### Phase 1: Read Templates
 
-1. Read `agent-architecture.md` in full
-2. Read every file in `.claude/agents/`, `.claude/rules/`, `.claude/skills/`
-3. Read `CLAUDE.md`, `.claude/settings.json`, `docs/design-system.md`, `docs/architecture.md`
+1. Fetch and read `agent-architecture.md` in full
+2. Fetch templates for agents, rules, and skills from the manifest above
+3. Fetch `CLAUDE.md`, `.claude/settings.json`, `docs/design-system.md`, `docs/architecture.md`
 4. Internalize the agent roles, rules structure, workflow stages, and adaptation requirements
 
 ---
@@ -127,7 +153,7 @@ Typical questions (only ask what's unknown):
 
 For each rules file in the confirmed profile:
 
-1. Read the template from the agentFactory `.claude/rules/<rule-name>.md`
+1. Fetch the template from agentFactory `.claude/rules/<rule-name>.md`
 2. Replace `<!-- ADAPT -->` paths with project-specific globs:
    - React detected? → `react.md` globs: `**/*.tsx`, `**/*.ts`
    - C# detected? → `code-cleanliness.md` globs: `**/*.cs`, `**/*.tsx`, `**/*.ts`
@@ -148,7 +174,7 @@ For each rules file in the confirmed profile:
 
 ### Phase 5: Create Settings & Hooks
 
-Copy `.claude/settings.json` hook template to target project. No customization needed — the PostToolUse prompt hook works generically against whatever rules are loaded.
+Fetch `.claude/settings.json` hook template and write to target project. No customization needed — the PostToolUse prompt hook works generically against whatever rules are loaded.
 
 Preserve any existing `.claude/settings.local.json` (user-specific permissions).
 
@@ -158,7 +184,7 @@ Preserve any existing `.claude/settings.local.json` (user-specific permissions).
 
 For each agent in the confirmed profile:
 
-1. Read the template from agentFactory `.claude/agents/<agent-name>.md`
+1. Fetch the template from agentFactory `.claude/agents/<agent-name>.md`
 2. Replace ALL `<!-- ADAPT -->` sections with project-specific content
 3. Remove `<!-- ADAPT -->` comment markers entirely — final files should have no markers
 4. Write to target `.claude/agents/<agent-name>.md`
@@ -181,7 +207,7 @@ For each agent in the confirmed profile:
 
 For each skill in the confirmed profile:
 
-1. Copy skill template to target project's `.claude/skills/`
+1. Fetch skill template and write to target project's `.claude/skills/`
 2. Skills reference agents by name — if the agent wasn't created, skip the skill
 
 **Skill profile mapping:**
@@ -210,15 +236,15 @@ For each agent with `memory: project` in frontmatter:
    ```
 
 **CLAUDE.md:**
-Create or update from template:
+Fetch CLAUDE.md template, then create or update for target project:
 - Replace universal rules with project-specific emphasis
 - Remove `<!-- ADAPT -->` markers for agents/rules not in the profile
 - Add project-specific context from discovery
 - Keep under ~35 lines
 
 **Reference Docs:**
-- `docs/design-system.md` — only if frontend agents included; customize with project's design tokens
-- `docs/architecture.md` — always; fill with detected project structure
+- `docs/design-system.md` — only if frontend agents included; fetch template, customize with project's design tokens
+- `docs/architecture.md` — always; fetch template, fill with detected project structure
 
 ---
 
@@ -265,7 +291,7 @@ Present final summary:
 
 ## Important Rules
 
-1. **Read before writing.** Always read templates and project files before generating anything.
+1. **Read before writing.** Always fetch templates and read project files before generating anything.
 2. **Preserve methodology.** Core agent methodology is battle-tested. Do not edit, summarize, condense, or "improve" it. Only customize marked sections.
 3. **Don't over-ask.** Auto-detect everything you can. Target 2-4 questions.
 4. **Don't over-create.** Only create artifacts appropriate for the project profile.
