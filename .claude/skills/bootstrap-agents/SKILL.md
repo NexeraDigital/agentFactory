@@ -47,6 +47,7 @@ These are the files to fetch from the agentFactory repo:
 owner: "NexeraDigital"
 repo: "agentFactory"
 path: "<file path from manifest above>"
+branch: "russ/suggestions"
 ```
 
 Fetch templates in batches — start with `agent-architecture.md` to understand the methodology, then fetch agent/rules/skill templates as needed during the creation phases.
