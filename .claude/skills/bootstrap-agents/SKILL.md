@@ -34,6 +34,7 @@ These are the files to fetch from the agentFactory repo:
 
 **Hooks:**
 - `templates/hooks/pre-commit`
+- `templates/hooks/pre-commit-posix`
 
 **Other:**
 - `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`, `.claude/security-baseline.md`
@@ -178,25 +179,28 @@ For each rules file in the confirmed profile:
 
 ### Phase 5: Create Pre-Commit Hook
 
-Fetch `templates/hooks/pre-commit` from agentFactory.
+Fetch `templates/hooks/pre-commit` and `templates/hooks/pre-commit-posix` from agentFactory.
 
 **If Node.js project** (`package.json` exists at project root):
 
 1. Install Husky: `npm install --save-dev husky && npx husky init`
-2. Write the pre-commit template to `.husky/pre-commit`
-3. Replace `<!-- ADAPT -->` markers with detected file patterns:
+2. Write `templates/hooks/pre-commit` → `.husky/pre-commit`
+3. Write `templates/hooks/pre-commit-posix` → `.husky/_/pre-commit`
+4. Replace `<!-- ADAPT -->` markers with detected file patterns:
    - Backend patterns based on detected language (`.cs`, `.py`, `.go`, `.java`, etc.)
    - Frontend patterns based on detected framework (`.tsx?`, `.vue`, `.svelte`, etc.)
    - Exclude patterns for test directories
-4. Uncomment relevant static linter sections (dotnet format, eslint, etc.)
-5. `chmod +x .husky/pre-commit`
+5. Uncomment relevant static linter sections (dotnet format, eslint, etc.)
+6. `chmod +x .husky/pre-commit .husky/_/pre-commit`
+7. Create `.husky/logs/` directory
 
 **If not Node.js:**
 
-1. Write the pre-commit template to `.git/hooks/pre-commit`
-2. Replace `<!-- ADAPT -->` markers with detected file patterns
-3. Uncomment relevant static linter sections
-4. `chmod +x .git/hooks/pre-commit`
+1. Write `templates/hooks/pre-commit` → `.git/hooks/pre-commit`
+2. No POSIX shim needed (Git calls the hook directly)
+3. Replace `<!-- ADAPT -->` markers with detected file patterns
+4. Uncomment relevant static linter sections
+5. `chmod +x .git/hooks/pre-commit`
 
 ---
 
