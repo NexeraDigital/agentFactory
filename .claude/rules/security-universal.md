@@ -16,6 +16,7 @@ These rules apply to **all code**. They catch the most dangerous vulnerability p
 | SEC-006 | **High** | No secrets in responses or logs | Never include tokens, passwords, connection strings, API keys, or internal IDs in API responses, URLs, or log entries. Sanitize error messages — no stack traces or SQL fragments in production responses. |
 
 ## Scary Patterns (Treat as High Severity Unless Clearly Safe)
+<!-- Keep in sync with .claude/agents/sentinel.md "Scary Pattern" Rules section -->
 
 1. Direct entity lookups by ID on user-owned entities without user scoping
 2. Bypassing user scoping filters on user-owned entities

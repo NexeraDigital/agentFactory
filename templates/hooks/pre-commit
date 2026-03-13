@@ -139,4 +139,56 @@ Be concise. Only flag genuine violations, not style preferences." 2>/dev/null) |
 review_domain "backend" "$BACKEND_FILES" || FOUND_CRITICAL=1
 review_domain "frontend" "$FRONTEND_FILES" || FOUND_CRITICAL=1
 
+# ─── Sentinel Security Review ───────────────────────────────────────────────
+
+SECURITY_FILES=$(echo "$STAGED_FILES" | grep -E '\.(cs|ts|tsx|js|jsx|py|go|java|sql)$' || true)
+
+if [ -n "$SECURITY_FILES" ]; then
+  SECURITY_COUNT=$(echo "$SECURITY_FILES" | wc -l | tr -d ' ')
+  echo "[pre-commit] Running sentinel security review on $SECURITY_COUNT file(s)..."
+
+  SECURITY_DIFF=$(echo "$SECURITY_FILES" | xargs git diff --cached --)
+
+  SENTINEL_RESULT=$(claude --print -p "You are Sentinel, a security review gate. Review this staged diff for CRITICAL security violations only.
+
+Focus on:
+- SEC-001: Direct entity lookups without user scoping (BOLA/IDOR)
+- SEC-002: User-supplied identity trust
+- SEC-003: Missing user scoping on data operations
+- SEC-005: SQL/NoSQL injection (string concatenation in queries)
+- SEC-006: Secrets in responses or logs
+
+Diff:
+$SECURITY_DIFF
+
+Response format:
+- If CRITICAL security violations: Start with 'CRITICAL:' then list each with rule ID
+- If only concerns: Start with 'WARNING:' then list
+- If clean: 'PASS: No security violations found'
+
+Be precise. Only flag genuine security vulnerabilities with evidence." 2>/dev/null) || {
+    echo "[pre-commit] sentinel review failed — skipping"
+    SENTINEL_RESULT=""
+  }
+
+  if echo "$SENTINEL_RESULT" | grep -q "^CRITICAL:"; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo "  COMMIT BLOCKED — Sentinel detected security violations"
+    echo "══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "$SENTINEL_RESULT"
+    echo ""
+    echo "Fix the violations above and try again."
+    echo "To bypass: git commit --no-verify (not recommended)"
+    echo ""
+    FOUND_CRITICAL=1
+  elif echo "$SENTINEL_RESULT" | grep -q "^WARNING:"; then
+    echo "[pre-commit] sentinel warnings (non-blocking):"
+    echo "$SENTINEL_RESULT" | head -5
+  else
+    echo "[pre-commit] sentinel: PASS"
+  fi
+fi
+
 exit $FOUND_CRITICAL
