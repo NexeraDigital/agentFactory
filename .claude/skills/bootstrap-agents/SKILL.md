@@ -1,6 +1,6 @@
 ---
 name: bootstrap-agents
-description: "Bootstrap the complete agent architecture into a new project. Detects tech stack, creates rules, agents, hooks, skills, memory, and CLAUDE.md."
+description: "Bootstrap the complete agent architecture into a new project. Detects tech stack, creates rules, agents, skills, memory, and CLAUDE.md."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, mcp__github-server__get_file_contents
 ---
@@ -32,8 +32,11 @@ These are the files to fetch from the agentFactory repo:
 **Skills** (`.claude/skills/`):
 - `debug-investigate/SKILL.md`, `clarify-data/SKILL.md`, `review-cleanliness/SKILL.md`
 
+**Hooks:**
+- `templates/hooks/pre-commit`
+
 **Other:**
-- `.claude/settings.json`, `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`
+- `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`
 
 ### How to Fetch Templates
 
@@ -60,7 +63,7 @@ Execute these phases in order. Do not skip phases. Do not make assumptions — v
 
 1. Fetch and read `agent-architecture.md` in full
 2. Fetch templates for agents, rules, and skills from the manifest above
-3. Fetch `CLAUDE.md`, `.claude/settings.json`, `docs/design-system.md`, `docs/architecture.md`
+3. Fetch `CLAUDE.md`, `docs/design-system.md`, `docs/architecture.md`
 4. Internalize the agent roles, rules structure, workflow stages, and adaptation requirements
 
 ---
@@ -100,7 +103,7 @@ Auto-detect as much as possible by reading project files. Gather evidence before
 - Identify test frameworks
 
 #### 2g: Existing Setup
-- Check for existing `.claude/agents/`, `.claude/rules/`, `.claude/skills/`, `.claude/settings.json`
+- Check for existing `.claude/agents/`, `.claude/rules/`, `.claude/skills/`
 - Check for `.claude/agent-memory/`
 
 ---
@@ -172,11 +175,27 @@ For each rules file in the confirmed profile:
 
 ---
 
-### Phase 5: Create Settings & Hooks
+### Phase 5: Create Pre-Commit Hook
 
-Fetch `.claude/settings.json` hook template and write to target project. No customization needed — the PostToolUse prompt hook works generically against whatever rules are loaded.
+Fetch `templates/hooks/pre-commit` from agentFactory.
 
-Preserve any existing `.claude/settings.local.json` (user-specific permissions).
+**If Node.js project** (`package.json` exists at project root):
+
+1. Install Husky: `npm install --save-dev husky && npx husky init`
+2. Write the pre-commit template to `.husky/pre-commit`
+3. Replace `<!-- ADAPT -->` markers with detected file patterns:
+   - Backend patterns based on detected language (`.cs`, `.py`, `.go`, `.java`, etc.)
+   - Frontend patterns based on detected framework (`.tsx?`, `.vue`, `.svelte`, etc.)
+   - Exclude patterns for test directories
+4. Uncomment relevant static linter sections (dotnet format, eslint, etc.)
+5. `chmod +x .husky/pre-commit`
+
+**If not Node.js:**
+
+1. Write the pre-commit template to `.git/hooks/pre-commit`
+2. Replace `<!-- ADAPT -->` markers with detected file patterns
+3. Uncomment relevant static linter sections
+4. `chmod +x .git/hooks/pre-commit`
 
 ---
 
@@ -271,14 +290,14 @@ Present final summary:
 | [name] | .claude/skills/[dir]/SKILL.md | [agent name] |
 
 ### Hooks
-- PostToolUse prompt hook configured in .claude/settings.json
+- Pre-commit hook installed at [.husky/pre-commit | .git/hooks/pre-commit]
 
 ### CLAUDE.md
 - [Created / Updated] with agent dispatch and universal rules
 
 ### Architecture
 - Layer 1: Rules auto-load from .claude/rules/ based on file type
-- Layer 2: PostToolUse hook auto-reviews edits against loaded rules
+- Layer 2: Pre-commit hook batch-reviews staged changes before commit
 - Layer 3: Skills available for batch review and on-demand specialists
 - Layer 4: Agents available for planning and design sessions
 

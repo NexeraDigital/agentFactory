@@ -14,7 +14,7 @@ The agents are not decorative. They are opinionated, they have hard rules, and t
 
 ## The Agent Roster
 
-Ten agents organized into three tiers based on when and how they engage. Code cleanliness enforcement has been promoted to **rules** (`.claude/rules/`) that auto-load based on file type, backed by a **PostToolUse prompt hook** that reviews every edit against loaded rules. This three-layer architecture (rules → hooks → agents) provides continuous enforcement without consuming an agent invocation.
+Ten agents organized into three tiers based on when and how they engage. Code cleanliness enforcement has been promoted to **rules** (`.claude/rules/`) that auto-load based on file type, backed by a **pre-commit hook** that batch-reviews staged changes before commit. This four-layer architecture (rules → pre-commit → skills → agents) provides continuous enforcement without consuming an agent invocation.
 
 ### Tier 1: Always-On Architects (Planning + Review)
 
@@ -176,9 +176,9 @@ Before writing code, the planning quorum reviews the proposed work:
 | Backend Architect | Code quality, patterns, architectural compliance (exits if frontend-only) |
 | React Architect | Component patterns, state management, TypeScript (exits if backend-only) |
 | Sentinel | Security vulnerabilities, auth, data protection (always reviews) |
-| *Rules + Hook* | *Code cleanliness (method length, cohesion, coupling, nesting) enforced automatically via `.claude/rules/` and PostToolUse hook* |
+| *Rules + Pre-commit* | *Code cleanliness (method length, cohesion, coupling, nesting) enforced automatically via `.claude/rules/` and pre-commit hook* |
 
-Reviewers run in **parallel**. Each produces independent findings. If an agent has nothing relevant to say, it exits with no findings. Code cleanliness is enforced continuously through rules and hooks rather than a dedicated review agent — use the `/review-cleanliness` skill for batch review of staged changes.
+Reviewers run in **parallel**. Each produces independent findings. If an agent has nothing relevant to say, it exits with no findings. Code cleanliness is enforced continuously through rules and the pre-commit hook rather than a dedicated review agent — use the `/review-cleanliness` skill for batch review of staged changes.
 
 ### Stage 4: On-Demand
 
@@ -246,7 +246,7 @@ Run `/bootstrap-agents` in a target project to automatically set up the complete
 2. **Auto-detects the project** — backend, frontend, infrastructure, data persistence, testing
 3. **Asks 2-4 clarifying questions** — only what it can't detect
 4. **Creates rules** — customized `.claude/rules/` files with project-specific file globs
-5. **Creates hooks** — `.claude/settings.json` with PostToolUse prompt hook
+5. **Creates pre-commit hook** — Husky (Node.js) or `.git/hooks/` with project-specific file patterns
 6. **Creates agents** — customized `.claude/agents/` files with project context injected
 7. **Creates skills** — `/debug-investigate`, `/clarify-data`, `/review-cleanliness`
 8. **Creates memory, CLAUDE.md, reference docs** — with two-tier memory guidance
@@ -254,14 +254,14 @@ Run `/bootstrap-agents` in a target project to automatically set up the complete
 
 The bootstrap skill is defined in `.claude/skills/bootstrap-agents/SKILL.md`.
 
-### Three-Layer Review Architecture
+### Four-Layer Review Architecture
 
-The migration from a dedicated code-cleanliness agent to a rules-based system creates a layered enforcement architecture:
+The enforcement architecture creates four layers of quality gates, from zero-cost rule loading through blocking pre-commit review to on-demand specialists:
 
 | Layer | Mechanism | When It Fires | What It Catches |
 |-------|-----------|---------------|-----------------|
 | **1. Rules** | `.claude/rules/*.md` with `globs:` frontmatter | Auto-loaded when matching files are in context | Domain-specific patterns (React anti-patterns, SQL anti-patterns, etc.) |
-| **2. Hook** | PostToolUse prompt hook in `.claude/settings.json` | After every `Edit` or `Write` tool call | Violations of any loaded rules — immediate feedback |
+| **2. Pre-commit** | `templates/hooks/pre-commit` via Husky or git hooks | On `git commit` (any editor, any developer) | Cross-file violations, non-Claude edits, cumulative growth — blocks commit on CRITICAL |
 | **3. Skills** | `/review-cleanliness` batch review | On demand (before commit, during review) | Comprehensive cleanliness sweep of staged changes |
 | **4. Agents** | Specialized agents in `.claude/agents/` | During planning and design sessions | Architectural decisions, security audits, design guidance |
 
@@ -274,7 +274,9 @@ If you prefer manual setup over `/bootstrap-agents`, the template files are orga
   agents/       — 10 agent templates with <!-- ADAPT --> markers
   rules/        — 9 rules templates (4 always-loaded, 5 with <!-- ADAPT --> globs)
   skills/       — 4 skill templates (bootstrap, debug-investigate, clarify-data, review-cleanliness)
-  settings.json — PostToolUse hook template
+templates/
+  hooks/
+    pre-commit  — Pre-commit hook template with <!-- ADAPT --> markers
 CLAUDE.md       — Project CLAUDE.md template
 docs/
   design-system.md  — Design system reference template

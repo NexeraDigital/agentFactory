@@ -1,6 +1,6 @@
 # agentFactory
 
-A template repository that bootstraps specialized AI agent architectures into software projects using [Claude Code](https://claude.com/claude-code). Provides 10 opinionated agents, 9 rules files, a PostToolUse hook, and 4 skills — all customized to your project's tech stack automatically.
+A template repository that bootstraps specialized AI agent architectures into software projects using [Claude Code](https://claude.com/claude-code). Provides 10 opinionated agents, 9 rules files, a pre-commit hook, and 4 skills — all customized to your project's tech stack automatically.
 
 ## Getting Started
 
@@ -55,7 +55,7 @@ A four-layer quality enforcement architecture:
 | Layer | What | How |
 |-------|------|-----|
 | **Rules** | 9 rules files in `.claude/rules/` | Auto-load by file type, enforce patterns continuously |
-| **Hook** | PostToolUse prompt hook | Reviews every edit against loaded rules in real-time |
+| **Pre-commit** | Pre-commit hook (Husky or git hooks) | Batch-reviews staged changes, blocks commit on CRITICAL violations |
 | **Skills** | `/debug-investigate`, `/clarify-data`, `/review-cleanliness` | On-demand batch review and specialist routing |
 | **Agents** | 10 specialized agents in `.claude/agents/` | Planning sessions, design guidance, security audits |
 
@@ -93,7 +93,7 @@ Not every project needs all 10 agents. The bootstrap detects your tech stack and
 2. **Discover project** — Auto-detects backend, frontend, infrastructure, data persistence, testing
 3. **Ask questions** — Only what it can't detect (2-4 questions)
 4. **Create rules** — Customizes `.claude/rules/` with project-specific file globs
-5. **Create hooks** — Copies `.claude/settings.json` with PostToolUse prompt hook
+5. **Create pre-commit hook** — Installs via Husky (Node.js) or `.git/hooks/` with project-specific patterns
 6. **Create agents** — Customizes `.claude/agents/` with project context injected
 7. **Create skills** — Copies `/debug-investigate`, `/clarify-data`, `/review-cleanliness`
 8. **Create memory & docs** — Agent memory directories, CLAUDE.md, reference docs
@@ -109,7 +109,6 @@ Every template contains `<!-- ADAPT -->` markers where project-specific content 
 CLAUDE.md                                  Template (~35 lines)
 agent-architecture.md                      Methodology (10-agent roster, workflow stages)
 .claude/
-  settings.json                            PostToolUse hook template
   rules/                                   9 rules templates
   agents/                                  10 agent templates
   skills/
@@ -118,6 +117,9 @@ agent-architecture.md                      Methodology (10-agent roster, workflo
     clarify-data/SKILL.md                  Routes to data-clarifier
     review-cleanliness/SKILL.md            Batch code cleanliness review
   agent-memory/                            4 memory directories
+templates/
+  hooks/
+    pre-commit                             Pre-commit hook template (Layer 3)
 docs/
   architecture.md                          Project architecture template
   design-system.md                         Design system reference template

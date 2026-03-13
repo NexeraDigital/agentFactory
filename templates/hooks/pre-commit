@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook (Layer 3): Batch review of staged changes against .claude/rules/
+#
+# Runs claude --print on staged diffs grouped by domain. Blocks commit if CRITICAL
+# violations are detected. Exits gracefully if claude CLI is not available.
+#
+# Installed by /bootstrap-agents. Customized for your project's file patterns.
+
+set -euo pipefail
+
+# ─── Configuration ───────────────────────────────────────────────────────────
+
+# <!-- ADAPT: Adjust file patterns to match your project's conventions -->
+BACKEND_PATTERN='\.(cs|sql)$'
+BACKEND_EXCLUDE='[Tt]est'
+FRONTEND_PATTERN='\.(tsx?|css|scss)$'
+
+# Maximum files before skipping AI review (large merges, initial commits)
+MAX_FILES=50
+
+# ─── Staged Files ────────────────────────────────────────────────────────────
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+FILE_COUNT=$(echo "$STAGED_FILES" | wc -l | tr -d ' ')
+
+if [ "$FILE_COUNT" -gt "$MAX_FILES" ]; then
+  echo "[pre-commit] $FILE_COUNT files staged — skipping AI review (threshold: $MAX_FILES)"
+  exit 0
+fi
+
+# ─── Claude CLI Check ────────────────────────────────────────────────────────
+
+if ! command -v claude &>/dev/null; then
+  echo "[pre-commit] claude CLI not found — skipping AI review"
+  echo "[pre-commit] Install: https://claude.com/claude-code"
+  exit 0
+fi
+
+# ─── Static Linters (uncomment and adapt) ────────────────────────────────────
+
+# <!-- ADAPT: Uncomment the linters that apply to your project -->
+
+# # .NET format check
+# if echo "$STAGED_FILES" | grep -qE '\.cs$'; then
+#   echo "[pre-commit] Running dotnet format..."
+#   dotnet format --verify-no-changes --include $(echo "$STAGED_FILES" | grep -E '\.cs$' | tr '\n' ' ') || {
+#     echo "[pre-commit] dotnet format found issues. Run 'dotnet format' to fix."
+#     exit 1
+#   }
+# fi
+
+# # ESLint check
+# if echo "$STAGED_FILES" | grep -qE '\.(tsx?|jsx?)$'; then
+#   echo "[pre-commit] Running eslint..."
+#   npx eslint $(echo "$STAGED_FILES" | grep -E '\.(tsx?|jsx?)$' | tr '\n' ' ') || {
+#     echo "[pre-commit] ESLint found issues. Run 'npx eslint --fix' to fix."
+#     exit 1
+#   }
+# fi
+
+# ─── Domain Grouping ─────────────────────────────────────────────────────────
+
+BACKEND_FILES=$(echo "$STAGED_FILES" | grep -E "$BACKEND_PATTERN" | grep -vE "$BACKEND_EXCLUDE" || true)
+FRONTEND_FILES=$(echo "$STAGED_FILES" | grep -E "$FRONTEND_PATTERN" || true)
+
+FOUND_CRITICAL=0
+
+# ─── Review Function ─────────────────────────────────────────────────────────
+
+review_domain() {
+  local domain="$1"
+  local files="$2"
+
+  if [ -z "$files" ]; then
+    return 0
+  fi
+
+  local file_count
+  file_count=$(echo "$files" | wc -l | tr -d ' ')
+  echo "[pre-commit] Reviewing $file_count $domain file(s)..."
+
+  local diff
+  diff=$(echo "$files" | xargs git diff --cached --)
+
+  local result
+  result=$(claude --print -p "You are a code review gate. Review this staged diff for CRITICAL violations of the rules in .claude/rules/.
+
+Focus on cross-file violations that per-edit hooks miss:
+- Layer dependency violations (Manager->Manager, Engine->Engine, Accessor->Accessor)
+- Missing user scoping across call chains
+- State synchronization across components
+- Cumulative growth (files exceeding size limits)
+
+Diff to review:
+$diff
+
+Response format:
+- If CRITICAL violations found: Start with 'CRITICAL:' then list each violation with rule ID
+- If only warnings: Start with 'WARNING:' then list concerns
+- If clean: Respond with 'PASS: No critical violations found'
+
+Be concise. Only flag genuine violations, not style preferences." 2>/dev/null) || {
+    echo "[pre-commit] claude review failed for $domain — skipping"
+    return 0
+  }
+
+  if echo "$result" | grep -q "^CRITICAL:"; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo "  COMMIT BLOCKED — Critical violations in $domain files"
+    echo "══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "$result"
+    echo ""
+    echo "Fix the violations above and try again."
+    echo "To bypass: git commit --no-verify (not recommended)"
+    echo ""
+    return 1
+  fi
+
+  if echo "$result" | grep -q "^WARNING:"; then
+    echo "[pre-commit] $domain warnings (non-blocking):"
+    echo "$result" | head -5
+  else
+    echo "[pre-commit] $domain: PASS"
+  fi
+
+  return 0
+}
+
+# ─── Run Reviews ──────────────────────────────────────────────────────────────
+
+review_domain "backend" "$BACKEND_FILES" || FOUND_CRITICAL=1
+review_domain "frontend" "$FRONTEND_FILES" || FOUND_CRITICAL=1
+
+exit $FOUND_CRITICAL
