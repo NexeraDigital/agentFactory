@@ -41,4 +41,4 @@ Template repository for bootstrapping specialized AI agent architectures into ne
 | `/debug-investigate` | Route to debug-investigator for any bug/error |
 | `/clarify-data` | Route to data-clarifier for data-heavy UI design |
 | `/review-cleanliness` | Batch review staged changes for code cleanliness |
-| `/security-review` | Run sentinel security audit on changed files |
+| `/sentinel-review` | Run sentinel security audit on changed files |
