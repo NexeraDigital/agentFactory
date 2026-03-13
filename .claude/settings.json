@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the edit just made violates any rules loaded in context. If violations found, list each with [RULE-ID] [SEVERITY] description. If no violations, say nothing."
+          }
+        ]
+      }
+    ]
+  }
+}

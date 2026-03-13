@@ -26,18 +26,26 @@ Everything else lives in reference files that Claude reads **only when relevant*
 ## Reference File Structure
 
 ```
+.claude/
+├── rules/                           # Auto-loading rules with paths: frontmatter
+│   ├── universal.md                 # Always loaded (no paths: frontmatter)
+│   ├── security-universal.md        # Always loaded (no paths: frontmatter)
+│   ├── backend.md                   # paths: ["**/*.cs", "!**/*Test*.cs"]
+│   ├── react.md                     # paths: ["**/*.tsx", "**/*.ts"]
+│   ├── idesign.md                   # paths: ["**/*Manager.cs", "**/*Engine.cs", "**/*Accessor.cs"]
+│   ├── sql.md                       # paths: ["**/*Accessor.cs", "**/Migrations/**", "**/*.sql"]
+│   ├── table-storage.md             # paths: ["**/TableStorage/**"]
+│   ├── ui-design.md                 # paths: ["**/*.tsx", "**/*.css", "**/*.scss"]
+│   └── code-cleanliness.md          # paths: ["**/*.cs", "**/*.tsx", "**/*.ts"]
+├── settings.json                    # Hook configuration (prompt/agent handlers)
+├── skills/                          # On-demand batch review commands
+│   ├── review-backend/SKILL.md
+│   ├── review-security/SKILL.md
+│   └── review-cleanliness/SKILL.md
+└── agents/                          # HYBRID agents for planning sessions
 docs/
-├── review-rules/                    # Hook-triggered review rules
-│   ├── backend-rules.md             # BE-001 through BE-008
-│   ├── react-rules.md               # RC-001 through RC-008
-│   ├── security-rules.md            # SEC-001 through SEC-006
-│   ├── idesign-rules.md             # ID-001 through ID-007 + layer definitions
-│   ├── sql-rules.md                 # SQL-001 through SQL-007
-│   ├── table-storage-rules.md       # TS-001 through TS-006
-│   ├── code-cleanliness-rules.md    # CC-001 through CC-007
-│   └── ui-design-rules.md           # UI-001 through UI-008
 ├── design-system.md                 # Full design system (from modern-ui-agent)
-└── architecture.md                  # IDesign layers, dependency direction, project architecture
+└── architecture.md                  # IDesign layers + project structure
 ```
 
 ## CLAUDE.md Template (Lean Version)
@@ -51,54 +59,54 @@ docs/
 - Every query on user-owned entities MUST include a user identity predicate
 - UserId must come from authenticated identity, NEVER from request input
 
-## Reference Files
+## Project Context
 
-Read these files when working in the relevant domain. Do NOT read files for
-domains you are not currently working in.
+@docs/architecture.md
+@docs/design-system.md
 
-| Domain | Reference File | When to Read |
-|--------|---------------|--------------|
-| Backend (.cs) | `docs/review-rules/backend-rules.md` | Writing or reviewing C# code |
-| React (.tsx/.ts) | `docs/review-rules/react-rules.md` | Writing or reviewing React components |
-| Security | `docs/review-rules/security-rules.md` | Writing controllers, auth, data access |
-| Architecture | `docs/review-rules/idesign-rules.md` | Creating or modifying Manager/Engine/Accessor classes |
-| SQL / EF Core | `docs/review-rules/sql-rules.md` | Writing migrations, queries, DbContext changes |
-| Table Storage | `docs/review-rules/table-storage-rules.md` | Writing Table Storage entities or accessors |
-| Code cleanliness | `docs/review-rules/code-cleanliness-rules.md` | Any code authoring (all languages) |
-| UI Design | `docs/review-rules/ui-design-rules.md` | Styling, layout, component visual design |
-| Design System | `docs/design-system.md` | Creating new UI components or pages |
-| Architecture Overview | `docs/architecture.md` | Understanding layer boundaries and project structure |
+## Domain Rules
+
+Domain-specific rules auto-load from `.claude/rules/` when you access relevant files.
+No manual reading required -- rules with `paths:` frontmatter load conditionally.
 ```
+
+## The `@path` Import Syntax
+
+CLAUDE.md supports `@path` import syntax (up to 5 hops deep) for automatic inclusion of referenced documents. When CLAUDE.md contains `@docs/architecture.md`, Claude Code automatically inlines that file's content into the context at the start of every conversation -- no Read tool call required.
+
+Use `@path` imports for large reference docs that should always be available: architecture overviews, design systems, and similar project-wide references. Do not use `@path` imports for domain rules -- those belong in `.claude/rules/` where `paths:` frontmatter handles conditional loading automatically.
 
 ## How This Works with the Three Layers
 
-**Layer 1 (CLAUDE.md)**: Only the ~5 universal rules are always loaded. Claude follows these during generation with zero extra cost.
+**Layer 1 (CLAUDE.md + `.claude/rules/`)**: Rules files in `.claude/rules/` without `paths:` frontmatter (e.g., `universal.md`, `security-universal.md`) load on every session alongside CLAUDE.md. Rules files with `paths:` frontmatter load conditionally -- only when the current conversation involves files matching those patterns. Zero extra tool calls for either case.
 
-**Layer 2 (PostToolUse hooks)**: The hook's stderr prompt tells Claude which rules file to read: *"Review this edit against docs/review-rules/backend-rules.md."* Claude reads the file on demand -- tokens are spent only when the hook fires on a relevant file.
+**Layer 2 (`prompt`/`agent` hooks in `.claude/settings.json`)**: Hooks check edits against rules already in context from the auto-loaded `.claude/rules/` files. Because the relevant rules are already present, no Read tool call is needed -- the hook simply asks Claude to verify the edit against the rules it already has.
 
-**Layer 3 (PreCommit hook)**: The PreCommit prompt tells Claude to read all rules files relevant to the staged changes. Tokens are spent once per commit.
+**Layer 3 (Husky pre-commit hook)**: Runs outside Claude Code via standard git hooks. Can invoke the Agent SDK for a full rules review of staged changes, or run static linters directly. Tokens are spent once per commit.
 
 **On-demand (agents)**: HYBRID agents for planning sessions read the reference files they need. The agent prompt can say *"Read docs/architecture.md for project context before designing."*
 
 ## Token Impact
 
-| Approach | CLAUDE.md Size | Per-Conversation Cost |
-|----------|---------------|----------------------|
-| Everything inlined | ~300-400 lines | ~6-8K tokens on every conversation |
-| Lean index + references | ~30-40 lines | ~600-800 tokens + on-demand reads only when relevant |
+| Approach | Context Size | Per-Conversation Cost |
+|----------|-------------|----------------------|
+| Everything inlined in CLAUDE.md | ~300-400 lines | ~6-8K tokens on every conversation |
+| `.claude/rules/` with `paths:` frontmatter | ~30-40 lines CLAUDE.md + relevant rules only | ~600-800 tokens base + only matching domain rules loaded |
 
-A developer fixing a CSS bug loads ~600 tokens of CLAUDE.md instead of ~8K. A developer writing a new Manager loads ~600 tokens of CLAUDE.md + ~2K tokens of idesign-rules.md (read on demand) = ~2.6K total. Both are significantly cheaper than the inlined approach.
+Universal rules (`universal.md`, `security-universal.md`) are always loaded alongside CLAUDE.md. Domain rules load only when the conversation touches files that match their `paths:` patterns. A developer fixing a CSS bug loads the base ~600-800 tokens plus `ui-design.md` and `code-cleanliness.md` -- not SQL rules, not IDesign rules. A developer writing a new Manager loads the base plus `backend.md`, `idesign.md`, and `code-cleanliness.md`. Both are significantly cheaper than the fully-inlined approach, and neither requires any Read tool calls to access rules.
 
 ## What the Hooks Need to Change
 
-The PostToolUse hook stderr message must explicitly tell Claude to read the rules file, since it's no longer inlined in CLAUDE.md:
+With `.claude/rules/` and `paths:` frontmatter, hooks no longer need to instruct Claude to read rules files. The relevant rules are already in context by the time any hook fires, because Claude Code loaded them automatically when the relevant files were accessed.
+
+The `prompt` hook type in `.claude/settings.json` simply asks Claude to check the edit against rules that are already loaded -- no Read tool call is required:
 
 ```bash
-# Before (rules inlined in CLAUDE.md -- Claude already knows them):
-echo "Review this edit for backend rule violations." >&2
-
-# After (rules in reference file -- Claude needs to read it):
+# Old approach (rules in reference file -- hook had to tell Claude to read it):
 echo "Read docs/review-rules/backend-rules.md then review the edit you just made to $FILE. Report any violations with rule IDs." >&2
+
+# New approach (rules auto-loaded via .claude/rules/ -- already in context):
+echo "Review the edit you just made to $FILE against the backend and cleanliness rules already in your context. Report any violations with rule IDs." >&2
 ```
 
-This adds one Read tool call per hook trigger -- a small cost that's far outweighed by the savings from not loading all rules on every conversation.
+This eliminates the Read tool call overhead entirely. Rules arrive in context as part of the session setup -- before any hook fires -- so the hook's only job is to trigger the review, not to fetch the rules.

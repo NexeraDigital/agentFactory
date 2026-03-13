@@ -87,25 +87,36 @@ At opus pricing, this is a meaningful cost for every feature -- and it scales li
 
 The hook+rules pattern eliminates the biggest cost drivers:
 
-| Cost Driver | Current (Agents) | After (Hooks+Rules) |
+| Cost Driver | Current (Agents) | After (Hook+Rules) |
 |-------------|------------------|---------------------|
-| Irrelevant agent invocations | 1-2 agents "exit with no findings" per review (~20-30K input tokens wasted) | Hook checks file path in bash -- 0 tokens if not relevant |
-| Agent prompt loading | 7-15 KB per agent, per invocation | Rules are in CLAUDE.md (loaded once) or read on-demand from a ~2-3 KB rules file |
-| Model selection | 8 of 11 agents force opus | Self-review runs on whatever model the session is already using |
-| Review trigger | Manual invocation or workflow convention | Automatic on every edit -- no extra invocation needed |
-| Memory loading | Loaded on every agent invocation | Not applicable -- rules are static files |
-| Multi-stage duplication | Same agent loads at planning AND review | Hook handles review; agent only invoked for planning when needed |
+| Irrelevant agent invocations | 1-2 agents "exit with no findings" per review (~20-30K input tokens wasted) | Rules only load for relevant file types via `paths:` frontmatter -- 0 tokens for irrelevant domains |
+| Agent prompt loading | 7-15 KB per agent, per invocation | Rules auto-load into context (~2-3 KB per domain, only matching domains) |
+| Model selection | 8 of 11 agents force opus | `prompt` hooks use Haiku-level calls; main session uses whatever model is active |
+| Review trigger | Manual invocation or workflow convention | Automatic via PostToolUse `prompt` hooks |
+| Memory loading | Loaded on every agent invocation | Not applicable -- rules are static files in `.claude/rules/` |
+| Multi-stage duplication | Same agent loads at planning AND review | `prompt`/`agent` hooks handle review; agent only invoked for planning |
+| Pre-commit review | N/A | Husky pre-commit hook -- separate Agent SDK invocation, not charged to Claude Code session |
+
+### Three-Layer Cost Model
+
+The revised architecture distributes cost across three distinct layers, each with different pricing characteristics:
+
+- **Layer 1 (`.claude/rules/`)**: Rules auto-load into context. Universal rules (no `paths:` frontmatter) load every session (~1-2K tokens). Domain rules (with `paths:`) load conditionally (~2-3K per domain, only when matching files are accessed). Cost is similar to CLAUDE.md -- loaded once per session, not per edit.
+- **Layer 2 (PostToolUse `prompt` hooks)**: Each triggered edit incurs a Haiku-level LLM call. At ~$0.25 per million input tokens (vs ~$15 for Opus), this is cheap per-trigger. Replaces expensive Opus agent invocations for inline review.
+- **Layer 3 (Husky pre-commit)**: Runs entirely outside the Claude Code session as a separate process. If using the Agent SDK for AI review, it is a separate API call not charged to the session. If using static linters, it is free. Runs once per commit rather than per edit.
 
 **Estimated savings per feature:**
 
 | Scenario | Current | After | Savings |
 |----------|---------|-------|---------|
-| Post-completion review (5 agents) | ~100K input tokens | ~5K (rules file read) | **~95%** |
-| "No findings" exits (1-2 agents) | ~20-30K input tokens | 0 tokens | **100%** |
+| Post-completion review (5 agents) | ~100K input tokens | ~3-5K (auto-loaded rules in context) | **~95%** |
+| "No findings" exits (1-2 agents) | ~20-30K input tokens | 0 tokens (rules don't load for irrelevant domains) | **100%** |
+| Per-edit prompt hooks | N/A | ~1-2K per trigger (Haiku-level) | New cost, but cheap |
+| Husky pre-commit review | N/A | Separate Agent SDK cost (not session tokens) | External cost |
 | Planning (agents still invoked) | ~80K input tokens | ~80K input tokens | 0% (unchanged) |
 | **Total per feature** | **~200K** | **~85K** | **~57%** |
 
-The review phase sees the largest savings because it's the most frequent (runs after every change, not just once per feature) and has the most wasted invocations. Over a development session with 10-20 edit-review cycles, the cumulative savings are substantial.
+The review phase sees the largest savings because it is the most frequent (runs after every change, not just once per feature) and has the most wasted invocations. Over a development session with 10-20 edit-review cycles, the cumulative savings are substantial.
 
 ## When the Agent Is Still Worth the Tokens
 

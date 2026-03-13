@@ -6,10 +6,10 @@ This document describes how to evolve agentFactory's 11 agent definitions to tak
 
 Instead of invoking a standalone agent after every code change, this pattern:
 
-1. **Rules file** (`docs/review-rules/<domain>-rules.md`) -- Documented rules with IDs, severity levels, and bad/good code examples. Claude reads this file and self-reviews against it.
-2. **PostToolUse hook** (`.claude/hooks/`) -- A tiny script that reads stdin JSON from Claude Code, checks if the edited file is relevant, and exits with code 2 to feed a review prompt back via stderr.
+1. **Rules file** (`.claude/rules/<domain>-rules.md`) -- Documented rules with IDs, severity levels, and bad/good code examples. Rules files use `paths:` frontmatter for auto-loading conditional rules. Claude reads this file and self-reviews against it.
+2. **PostToolUse hook** (`.claude/settings.json`) -- Hook handler configured with `prompt` or `agent` type. The hook checks if the edited file is relevant and feeds a review prompt back to Claude.
 3. **CLAUDE.md entries** -- The highest-value rules inlined so Claude follows them proactively during generation (before the hook even fires).
-4. **Slash command** (optional) -- On-demand batch review via `git diff` for comprehensive sweeps.
+4. **Skill** (optional) -- On-demand batch review via `git diff` for comprehensive sweeps, defined at `.claude/skills/<name>/SKILL.md`.
 
 The hook does NO analysis. It triggers Claude's self-review against the rules file. Claude IS the reviewer.
 
@@ -81,7 +81,7 @@ The agent becomes a **thin orchestrator** that reads these reference docs on dem
 - `docs/idesign-reference.md` for methodology (system design, volatility analysis, component design)
 - `docs/idesign-implementation.md` for coding patterns (layer patterns, DI, error handling, naming)
 
-**Revised verdict**: **HYBRID**. Review role (forbidden dependencies, Grep-based violation detection) → hooks + `docs/review-rules/idesign-rules.md`. Planning role → lean agent that reads reference docs for interactive design reasoning. Agent definition slimmed to orchestration instructions only -- all methodology content lives in the reference docs.
+**Revised verdict**: **HYBRID**. Review role (forbidden dependencies, Grep-based violation detection) → hooks + `.claude/rules/idesign-rules.md`. Planning role → lean agent that reads reference docs for interactive design reasoning. Agent definition slimmed to orchestration instructions only -- all methodology content lives in the reference docs.
 
 #### modern-ui-agent: HYBRID → KEEP (verdict unchanged but reasoning shifts)
 

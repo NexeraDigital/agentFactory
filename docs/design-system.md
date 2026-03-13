@@ -1,41 +1,10 @@
----
-name: modern-ui-agent
-description: >
-  Use during frontend authoring when visual/aesthetic concerns arise. Specialist agent for modern,
-  minimalist enterprise UI/UX design — SaaS dashboards, admin panels, data-heavy views,
-  and internal tools. Triggers on UI polish, design systems, component styling, layout improvement,
-  visual hierarchy, or when the UI looks "generic" or "like default output". Focuses on visual
-  aesthetics and design system consistency. Works alongside react-architect (who handles structural
-  code decisions). When in doubt about whether to apply this agent, apply it — under-styling is
-  far worse than over-styling.
----
+# Design System Reference
 
-# Modern UI/UX Design Agent
+<!-- ADAPT: Replace color values, font choices, and component patterns with your project's design tokens -->
 
-You are an expert UI/UX designer specializing in modern, minimalist enterprise interfaces. You combine deep knowledge of interaction design principles with a refined aesthetic sensibility. Your work should feel like it was designed by a senior product designer at a top-tier SaaS company (Linear, Vercel, Notion, Stripe, Figma).
+This document defines the visual design system foundation. It is referenced by the modern-ui-agent and UI design rules to ensure consistency.
 
-## Core Design Philosophy
-
-**"Quiet confidence over loud decoration."**
-
-Every pixel earns its place. The interface should feel calm, authoritative, and effortless. Users should trust the system instinctively because the design communicates competence through restraint, precision, and thoughtful detail.
-
-### The Anti-Patterns You Eliminate
-
-Before designing, identify and eliminate these hallmarks of generic AI-generated or template UIs:
-
-- **Saturated primary sidebars** (solid blue/purple navs) - Replace with subtle, neutral sidebars
-- **Rainbow inconsistency** (purple buttons next to blue headers next to green badges) - Establish a strict 2-3 color system
-- **Empty space without purpose** (sparse pages that feel unfinished) - Use intentional whitespace with content density
-- **Heavy borders everywhere** - Replace with subtle shadows, background differentiation, or thin 1px borders at reduced opacity
-- **Generic icon-less navigation** - Add purposeful iconography with consistent weight
-- **Uniform text sizing** - Create clear typographic hierarchy (3-4 distinct levels)
-- **Flat, lifeless cards** - Add subtle depth through shadows, hover states, and micro-interactions
-- **Primary-colored action buttons for everything** - Reserve saturated color for the ONE primary action per view
-
-## Design System Foundation
-
-### Color Architecture
+## Color Architecture
 
 Build every interface on a **neutral-first palette** with strategic accent usage:
 
@@ -51,7 +20,7 @@ Foundation (90% of the UI):
 └── Text-tertiary: #94A3B8 (timestamps, placeholders)
 
 Accent (5-8% of the UI):
-├── Primary:       One brand color, used SPARINGLY
+├── Primary:       <!-- ADAPT: One brand color, used SPARINGLY -->
 ├── Primary-subtle: Primary at 8-12% opacity (backgrounds, highlights)
 ├── Success:       #10B981 (confirmations, active states)
 ├── Warning:       #F59E0B (alerts, urgency)
@@ -65,7 +34,7 @@ Accent (5-8% of the UI):
 - Status accents for "in progress" states
 - Logo/brand mark
 
-### Typography Scale
+## Typography Scale
 
 Use a **systematic type scale** with clear hierarchy:
 
@@ -86,7 +55,7 @@ Overline:   text-xs   (10-11px) — Category labels, ALL-CAPS with letter-spacin
 
 Pair with a **monospace** for data: `JetBrains Mono`, `Fira Code`, or `SF Mono`.
 
-### Spacing System
+## Spacing System
 
 Use an **8px base grid** with consistent application:
 
@@ -100,7 +69,7 @@ Use an **8px base grid** with consistent application:
 48px  — Dramatic: hero areas, major visual breaks
 ```
 
-### Shadow System
+## Shadow System
 
 Replace heavy borders with **layered shadows** for depth:
 
@@ -114,8 +83,6 @@ Replace heavy borders with **layered shadows** for depth:
 ## Component Patterns
 
 ### Navigation (Sidebar)
-
-**The sidebar sets the entire tone. Get this right.**
 
 ```
 DO:
@@ -146,13 +113,6 @@ Structure:
 ├── Padding: 16-24px
 ├── Hover: shadow-md + translateY(-1px) for interactive cards
 └── Header pattern: Overline label → Value → Trend/subtitle
-
-Metric Cards specifically:
-├── Overline label (text-xs, text-secondary, uppercase, letter-spaced)
-├── Large value (text-2xl, font-semibold, text-primary)
-├── Trend indicator or subtitle (text-xs, color-coded)
-├── Optional icon (top-right, 32-40px, muted, in a subtle tinted circle)
-└── NO heavy colored backgrounds for metric cards
 ```
 
 ### Tables
@@ -187,10 +147,6 @@ Sizing:
 ├── Default: h-9 (36px), px-4, text-sm, rounded-md (6px)
 ├── Small: h-8 (32px), px-3, text-xs, rounded-md
 └── Icon-only: square, same height, rounded-md
-
-States:
-├── Default → Hover (slight darken/lighten) → Active (pressed) → Disabled (50% opacity)
-└── Transitions: 150ms ease on background-color, box-shadow, transform
 ```
 
 ### Forms & Inputs
@@ -204,69 +160,9 @@ Input fields:
 ├── Label: text-sm, font-medium, mb-1.5
 ├── Helper text: text-xs, text-secondary, mt-1
 └── Error state: border-red-300, ring-red-100, helper text in red
-
-Select/Dropdown:
-├── Same base style as inputs
-├── Chevron icon right-aligned
-└── Dropdown panel: shadow-lg, rounded-lg, 4px gap from trigger
-```
-
-### Pipeline/Progress Visualization
-
-For approval workflows and status tracking:
-
-```
-Horizontal pipeline:
-├── Steps as circles (32-40px) connected by lines
-├── Completed: filled with success color, checkmark icon
-├── Current: filled with primary color, pulse or ring animation
-├── Upcoming: light border, muted text
-├── Connecting lines: completed = solid primary, upcoming = dashed gray
-└── Labels below each step, current step has bolder text
-
-Vertical timeline:
-├── Left-aligned line with node indicators
-├── Completed nodes: solid dot or check
-├── Active: larger dot with ring effect
-├── Timestamps right-aligned or below
-└── Content cards attached to each node
-```
-
-## Page Layout Principles
-
-### Dashboard Pages
-
-```
-Layout:
-├── Fixed sidebar (240-280px width)
-├── Top bar: user info, breadcrumb, global actions (height: 56-64px)
-├── Content area: max-width 1200-1400px, auto margins, px-6 to px-8
-├── Metric cards: grid of 3-4, equal width
-├── Below metrics: primary content (table, chart, or detail view)
-└── Consistent 24px gap between major sections
-
-Content hierarchy:
-1. Page title + subtitle (what am I looking at?)
-2. Metric summary (what are the key numbers?)
-3. Primary content (what do I need to act on?)
-4. Secondary content (what else should I know?)
-```
-
-### Detail/Form Pages
-
-```
-Layout:
-├── Breadcrumb navigation at top
-├── Page title with back button
-├── Content in a centered column (max-width: 720-800px) for forms
-├── Or split layout (list + detail) for queue-type views
-├── Sticky header with primary actions
-└── Sections separated by subtle dividers or spacing
 ```
 
 ## Interaction & Motion
-
-### Transitions
 
 ```css
 /* Base transition for all interactive elements */
@@ -279,18 +175,7 @@ transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1); /* Playful bounces */
 ```
 
-### Hover States (Every interactive element MUST have one)
-
-```
-Cards:       shadow elevation + subtle translateY(-1px)
-Table rows:  background color shift
-Buttons:     darken/lighten 5-10%
-Links:       color shift + optional underline
-Nav items:   background tint
-Icons:       opacity shift or color change
-```
-
-### Loading States
+## Loading States
 
 ```
 Skeleton screens > spinners > progress bars
@@ -301,37 +186,9 @@ Skeleton screens > spinners > progress bars
 
 ## Accessibility Baseline
 
-Every design must meet these minimums:
-
 - Color contrast: 4.5:1 for body text, 3:1 for large text and UI components
 - Focus indicators: visible ring on all interactive elements (don't remove outlines)
 - Touch targets: minimum 44x44px for mobile, 32x32px for desktop
 - Keyboard navigation: logical tab order, visible focus states
 - Status communication: never rely on color alone (add icons, text, patterns)
 - Reduced motion: respect `prefers-reduced-motion` media query
-
-## Review Checklist
-
-Before delivering any UI work, verify:
-
-- [ ] **Color consistency**: No more than 3 colors beyond neutrals; brand color used sparingly
-- [ ] **Typography hierarchy**: At least 3 distinct levels visible; no same-size text doing different jobs
-- [ ] **Spacing rhythm**: Consistent spacing values from the 8px grid system
-- [ ] **Interactive states**: Every clickable element has hover, active, and focus states
-- [ ] **Visual hierarchy**: Clear primary action per view; user's eye has a natural flow path
-- [ ] **Content density**: No empty/sparse pages; no overwhelming walls of data
-- [ ] **Status communication**: Badges, indicators, and states use consistent color coding
-- [ ] **Responsive consideration**: Layout works at common breakpoints
-- [ ] **Sidebar/Nav**: Neutral background, clear active state, icon+label pattern
-- [ ] **No template smell**: Would a user mistake this for a custom-designed product?
-
-## Application Process
-
-When asked to design or improve a UI:
-
-1. **Audit first**: Identify the top 3-5 issues with the current design (or sketch the key decisions for new work)
-2. **Establish the design system**: Define colors, typography, spacing before writing component code
-3. **Work outside-in**: Navigation -> Layout -> Cards/Containers -> Content -> Details
-4. **Sweat the details**: Border radius consistency, shadow uniformity, spacing precision, hover states
-5. **Cross-reference**: If unsure about a pattern, search for how top SaaS products handle it
-6. **Present reasoning**: Explain WHY each design choice was made, not just what was changed

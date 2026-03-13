@@ -3,7 +3,6 @@ name: table-storage-architect
 description: "Tier 2 Specialized Architect. Invoke during planning and authoring when designing, implementing, or reviewing Azure Table Storage or Cosmos DB Table API data models, partition strategies, or query patterns. Reviews data-layer changes for partition key correctness, query efficiency, and denormalization strategy. Works alongside the Backend Architect (who owns code quality) and the Structural Architect (who owns layer boundaries)."
 tools: Bash, Glob, Grep, Read
 model: opus
-color: cyan
 memory: project
 ---
 
@@ -122,20 +121,6 @@ Design every table to push queries toward the top of this list:
 - **Avoid table scans** — they consume transactions proportional to the entire table size.
 - **Use query projection** to reduce bandwidth costs.
 
-## Cosmos DB Table API Migration Readiness
-
-The `Azure.Data.Tables` NuGet package works with BOTH Azure Table Storage and Cosmos DB Table API with no code changes — just change the connection string.
-
-| Aspect | Azure Table Storage | Cosmos DB Table API |
-|--------|-------------------|-------------------|
-| Latency SLA | No upper bound | < 10ms reads, < 15ms writes at p99 |
-| Throughput | ~20,000 ops/sec per account | No upper limit |
-| Indexing | Primary index only (PK+RK) | Auto-indexes ALL properties |
-| Global distribution | Single region | Turnkey multi-region |
-| Pricing | Consumption only ($0.045/GB) | RU-based (higher cost) |
-
-**Design for Table Storage constraints** (single primary index) to maintain portability. Cosmos DB's automatic secondary indexing is a bonus, not a design crutch.
-
 ## Security
 
 - **Managed Identity** with `DefaultAzureCredential` from `Azure.Identity` for all Azure-hosted applications. No connection string secrets.
@@ -143,20 +128,6 @@ The `Azure.Data.Tables` NuGet package works with BOTH Azure Table Storage and Co
 - Assign **RBAC roles** (`Storage Table Data Contributor`, `Storage Table Data Reader`) — principle of least privilege.
 - **Private endpoints** to restrict network access.
 - Disable Shared Key access when possible (force Entra ID authentication).
-
-## Anti-Patterns to Reject
-
-| Anti-Pattern | Why It's Wrong | Correct Approach |
-|-------------|---------------|-----------------|
-| Single PartitionKey for all entities | Caps at ~2,000 ops/sec, prevents load balancing | Distribute across partitions by natural grouping |
-| GUIDs as PartitionKeys | Prevents range queries and meaningful grouping | Use business-meaningful keys with sufficient cardinality |
-| Append-only timestamp PartitionKeys | Hot partition — all writes to "latest" | Hash prefix or distributed partition strategy |
-| Table scans in production | Scans entire table, extreme cost and latency | Redesign data model for point or range queries |
-| Relational patterns (JOINs, normalization, FKs) | Table Storage is not relational | Denormalize, duplicate, use compound keys |
-| Ignoring continuation tokens | Silently drops data beyond 1,000 entities | Always handle continuation; use `AsyncPageable<T>` |
-| Large values in entities | 1 MiB entity limit | Store in Blob Storage, keep reference in table |
-| Immediate retry on 503 | Makes throttling worse | Exponential backoff |
-| No ETag/optimistic concurrency | Silent overwrites, lost updates | Always use ETag for conditional updates |
 
 ## Review Methodology
 

@@ -2,7 +2,13 @@
 
 ## Current Memory Design
 
-Five of 11 agents have `memory: project` in their YAML frontmatter. The intended mechanism: each agent gets a persistent file at `.claude/agent-memory/<agent-name>/MEMORY.md` that is loaded into the agent's system prompt on every invocation. Agents self-curate this file as they discover project-specific patterns across sessions.
+Five of 11 agents have `memory: project` in their YAML frontmatter. Agent definitions live at `.claude/agents/` and memory scope is declared in the YAML frontmatter. Claude Code supports three memory scopes:
+
+- `user`: User-level memory (persists across projects)
+- `project`: Project-level memory (persists within this project)
+- `local`: Local-only memory (not shared)
+
+The intended mechanism: each agent gets a persistent memory file loaded into the agent's system prompt on every invocation based on its declared scope. Agents self-curate this file as they discover project-specific patterns across sessions.
 
 | Agent | Memory Enabled | What They're Told to Store |
 |-------|---------------|---------------------------|
@@ -20,21 +26,24 @@ Five of 11 agents have `memory: project` in their YAML frontmatter. The intended
 
 All five memory-enabled agents share identical memory instructions:
 
+```yaml
+memory:
+  user: true    # User-level memory
+  project: true # Project-level memory
+  local: true   # Local-only memory
 ```
-You have a persistent agent memory directory. Its contents persist across conversations.
 
-As you work, consult your memory files to build on previous experience.
+Agents at `.claude/agents/` declare their memory scope in YAML frontmatter. Memory contents persist across conversations according to the declared scope and are loaded into the agent's system prompt on every invocation.
 
-Guidelines:
-- MEMORY.md is always loaded into your system prompt — lines after 200 will be truncated
-- Create separate topic files for detailed notes and link to them from MEMORY.md
+Guidelines embedded in agent definitions:
+- Memory is always loaded into your system prompt — lines after 200 will be truncated
+- Create separate topic files for detailed notes and link to them from the memory file
 - Update or remove memories that turn out to be wrong or outdated
 - Organize memory semantically by topic, not chronologically
-```
 
 Each agent also has a domain-specific prompt like: *"Update your agent memory as you discover [domain-specific patterns] across the project. This builds institutional knowledge across conversations."*
 
-The bootstrap procedure (`bootstrap-agents.md`, Phase 5) creates these directories and empty `MEMORY.md` files during project setup. Currently, no `.claude/agent-memory/` directory exists in this template repo -- memory is populated only after bootstrap into a target project.
+The bootstrap procedure (`bootstrap-agents.md`, Phase 5) creates agent definitions under `.claude/agents/` and initializes empty memory files during project setup. Currently, no memory files exist in this template repo -- memory is populated only after bootstrap into a target project.
 
 ## How Memory Is Supposed to Compound
 
@@ -122,20 +131,22 @@ This keeps memory files small (well under 200 lines), reduces wasted tokens on i
 
 | Agent | Verdict | Memory Action |
 |-------|---------|--------------|
-| code-cleanliness | CONVERT (delete) | Migrate project knowledge to CLAUDE.md. Violation hotspot knowledge → project-specific notes in rules file. Memory directory deleted. |
-| react-architect | HYBRID | Keep memory for planning. Move project-wide patterns (component conventions) to CLAUDE.md. Memory file becomes smaller, agent-specific only. |
-| sql-data-architect | HYBRID | Keep memory for planning. Move schema decisions to CLAUDE.md. Memory retains only performance findings and regression warnings. |
-| table-storage-architect | HYBRID | Keep memory for planning. Move partition strategies to CLAUDE.md. Memory retains only query pattern observations. |
-| data-clarifier | KEEP | No changes. Agent and memory stay as-is. |
+| code-cleanliness | CONVERT (delete) | Migrate project knowledge to CLAUDE.md. Violation hotspot knowledge → project-specific notes in `.claude/rules/` rules file. Agent definition at `.claude/agents/` deleted. |
+| react-architect | HYBRID | Keep memory for planning. Move project-wide patterns (component conventions) to CLAUDE.md. Memory file becomes smaller, agent-specific only. Agent definition remains at `.claude/agents/`. |
+| sql-data-architect | HYBRID | Keep memory for planning. Move schema decisions to CLAUDE.md. Memory retains only performance findings and regression warnings. Agent definition remains at `.claude/agents/`. |
+| table-storage-architect | HYBRID | Keep memory for planning. Move partition strategies to CLAUDE.md. Memory retains only query pattern observations. Agent definition remains at `.claude/agents/`. |
+| data-clarifier | KEEP | No changes. Agent definition and memory at `.claude/agents/` stay as-is. |
 
 ### What Changes in the Bootstrap
 
 `bootstrap-agents.md` Phase 5 should be updated:
 - Add guidance distinguishing Tier 1 (CLAUDE.md) vs. Tier 2 (agent memory) knowledge
 - Instruct agents to write project-wide discoveries to CLAUDE.md (or flag them for promotion)
+- Agent definitions at `.claude/agents/` should declare memory scope in YAML frontmatter
 - Agent memory instructions should say: *"Store only agent-specific observations here. Project-wide conventions and patterns belong in CLAUDE.md."*
 
 `agent-architecture.md` Step 5 and Principle 6 should be updated:
 - Describe the two-tier model
 - Clarify that "institutional knowledge" compounds in CLAUDE.md, not just in agent memory
-- Update the memory instruction template in agent definitions
+- Update the memory instruction template in agent definitions at `.claude/agents/`
+- Rules files for converted agents should be placed at `.claude/rules/` with `paths:` frontmatter for auto-loading

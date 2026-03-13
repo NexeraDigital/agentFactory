@@ -4,9 +4,18 @@
 
 ### code-cleanliness (FULL CONVERSION)
 
-**Delete**: `agents/code-cleanliness.md`
+**Delete**: `.claude/agents/code-cleanliness.md`
 
-**Create**: `docs/review-rules/code-cleanliness-rules.md` with these rules:
+**Create**: `.claude/rules/code-cleanliness.md` with these rules:
+
+```yaml
+---
+paths:
+  - "**/*.cs"
+  - "**/*.tsx"
+  - "**/*.ts"
+---
+```
 
 | ID | Severity | Rule | Bad Example | Good Example |
 |----|----------|------|-------------|--------------|
@@ -27,10 +36,25 @@
 - Nested if statements are forbidden -- use guard clauses or early returns
 - Constructor parameters must be 4 or fewer
 - Prefer declarative style: LINQ, switch expressions, pattern matching, immutable records
-- See docs/review-rules/code-cleanliness-rules.md for the full rule set
+- See .claude/rules/code-cleanliness.md for the full rule set
 ```
 
-**Create**: `/review-cleanliness` slash command that runs `git diff` and reviews all changed files against the rules file.
+**Create**: `.claude/skills/review-cleanliness/SKILL.md` that runs `git diff` and reviews all changed files against the rules file.
+
+```yaml
+---
+name: review-cleanliness
+description: Batch review of all staged changes against code cleanliness rules
+allowed-tools: Read, Glob, Grep, Bash
+context: fork
+---
+Review all staged files as a batch against .claude/rules/code-cleanliness.md.
+
+Staged changes:
+!`git diff --cached`
+
+For each violation found, report [RULE-ID] [SEVERITY] description and file location.
+```
 
 ---
 
@@ -42,7 +66,16 @@ For each HYBRID agent, two things happen:
 
 ### backend-architect
 
-**Create**: `docs/review-rules/backend-rules.md`
+**Create**: `.claude/rules/backend.md`
+
+```yaml
+---
+paths:
+  - "**/*.cs"
+  - "!**/*Test*.cs"
+  - "!**/Tests/**"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -66,12 +99,22 @@ Extract bad/good code examples from lines 41-68 and 117-124 of `backend-architec
 ## Backend Rules (Auto-Enforced)
 - NEVER use silent fallbacks (`??` with defaults, catch-return-default, TrySomething patterns)
 - Failures must be explicit: throw exceptions, log and rethrow
-- See docs/review-rules/backend-rules.md for the full rule set
+- See .claude/rules/backend.md for the full rule set
 ```
 
 ### react-architect
 
-**Create**: `docs/review-rules/react-rules.md`
+**Create**: `.claude/rules/react.md`
+
+```yaml
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.ts"
+  - "!**/*.test.ts"
+  - "!**/*.test.tsx"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -92,7 +135,9 @@ Extract from lines 99-107 of `react-architect.md`.
 
 ### sentinel
 
-**Create**: `docs/review-rules/security-rules.md`
+**Create**: `.claude/rules/security-universal.md`
+
+(No `paths:` frontmatter — security rules always load since security is universal across all file types.)
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -111,7 +156,17 @@ Extract from "Scary Pattern" Rules (lines 103-110) of `sentinel.md`.
 
 ### idesign-architect
 
-**Create**: `docs/review-rules/idesign-rules.md`
+**Create**: `.claude/rules/idesign.md`
+
+```yaml
+---
+paths:
+  - "**/*Manager.cs"
+  - "**/*Engine.cs"
+  - "**/*Accessor.cs"
+  - "**/*Controller.cs"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -131,7 +186,17 @@ Include infrastructure whitelist (ILogger, IConfiguration, IOptions, SDK clients
 
 ### sql-data-architect
 
-**Create**: `docs/review-rules/sql-rules.md`
+**Create**: `.claude/rules/sql.md`
+
+```yaml
+---
+paths:
+  - "**/*Accessor.cs"
+  - "**/Migrations/**"
+  - "**/*DbContext.cs"
+  - "**/*.sql"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -149,7 +214,15 @@ Include infrastructure whitelist (ILogger, IConfiguration, IOptions, SDK clients
 
 ### table-storage-architect
 
-**Create**: `docs/review-rules/table-storage-rules.md`
+**Create**: `.claude/rules/table-storage.md`
+
+```yaml
+---
+paths:
+  - "**/TableStorage/**"
+  - "**/*TableEntity.cs"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -166,7 +239,16 @@ Include infrastructure whitelist (ILogger, IConfiguration, IOptions, SDK clients
 
 ### modern-ui-agent
 
-**Create**: `docs/review-rules/ui-design-rules.md`
+**Create**: `.claude/rules/ui-design.md`
+
+```yaml
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.css"
+  - "**/*.scss"
+---
+```
 
 | ID | Severity | Rule |
 |----|----------|------|
@@ -199,100 +281,85 @@ No changes needed for these agents:
 
 ## Hook Architecture
 
-**Recommended: Domain-grouped hooks** (4 hook scripts in `.claude/hooks/`)
+**Rules auto-load via `.claude/rules/`**
 
-| Hook Script | Rules Files Loaded | File Filter |
-|-------------|-------------------|-------------|
-| `review-backend.sh` | backend-rules.md, idesign-rules.md, sql-rules.md, table-storage-rules.md | `**/*.cs`, `**/*.sql` |
-| `review-frontend.sh` | react-rules.md, ui-design-rules.md | `**/*.tsx`, `**/*.ts`, `**/*.css` |
-| `review-security.sh` | security-rules.md | `**/*.cs`, `**/*.tsx`, `**/*.ts` |
-| `review-cleanliness.sh` | code-cleanliness-rules.md | `**/*.cs`, `**/*.tsx`, `**/*.ts` |
+Since rules files now have `paths:` frontmatter, they auto-load when Claude touches relevant files. This eliminates the need for bash scripts that check file extensions and tell Claude to read rules files. The rules are already in context when they are needed.
 
-Each hook script:
-1. Reads the PostToolUse JSON from stdin
-2. Checks if `tool` is `Edit` or `Write`
-3. Checks if the file path matches its filter pattern
-4. If relevant, exits with code 2 and writes to stderr: `"Review the edit you just made against the rules in docs/review-rules/<rules-file>.md. Report any violations with rule IDs."`
-5. If not relevant, exits with code 0 (no feedback)
+### Hook Configuration in `.claude/settings.json`
 
-### Hook Script Template
+Hook configuration lives in `.claude/settings.json` (not a separate `hooks.json`). Each entry has a `matcher` string (regex against tool name) and a `hooks` array. Each hook must specify `"type"` (`command`, `http`, `prompt`, or `agent`).
 
-```bash
-#!/bin/bash
-# .claude/hooks/review-backend.sh
-# PostToolUse hook: triggers Claude self-review for backend edits
-
-INPUT=$(cat)
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // .tool // empty')
-FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
-
-# Only trigger on Edit/Write
-if [[ "$TOOL" != "Edit" && "$TOOL" != "Write" ]]; then
-  exit 0
-fi
-
-# Only trigger on backend files
-case "$FILE" in
-  *.cs|*.sql)
-    ;;
-  *)
-    exit 0
-    ;;
-esac
-
-# Skip test files
-case "$FILE" in
-  *Tests.cs|*Test.cs|*/Tests/*|*/tests/*)
-    exit 0
-    ;;
-esac
-
-# Trigger Claude self-review
-echo "Review the edit you just made to $FILE against the rules in docs/review-rules/backend-rules.md and docs/review-rules/idesign-rules.md. Report any violations with rule IDs and severity." >&2
-exit 2
-```
-
-### hooks.json Configuration
-
-Add to `.claude/hooks.json`:
 ```json
 {
   "hooks": {
     "PostToolUse": [
-      { "command": ".claude/hooks/review-backend.sh" },
-      { "command": ".claude/hooks/review-frontend.sh" },
-      { "command": ".claude/hooks/review-security.sh" },
-      { "command": ".claude/hooks/review-cleanliness.sh" }
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the edit just made violates any rules loaded in context. If violations found, list each with [RULE-ID] [SEVERITY] description."
+          }
+        ]
+      }
     ]
   }
 }
 ```
+
+Key differences from old format:
+- Config lives in `.claude/settings.json`, not a separate `hooks.json`
+- Each entry has a `matcher` string (regex against tool name) and a `hooks` array
+- Each hook must specify `"type"` (`command`, `http`, `prompt`, `agent`)
+- The matcher handles tool filtering; no bash script needed
+
+### Handler Types
+
+There are 4 handler types:
+- `command`: Run a shell command
+- `prompt`: Single-turn LLM evaluation. Perfect for per-edit rule checking. Returns `{ok: true/false, reason: "..."}`
+- `agent`: Multi-turn verification with tool access. Can read files, run commands. Perfect for cross-file analysis.
+- `http`: POST to an endpoint
+
+Since rules auto-load via `.claude/rules/`, a `prompt` hook does not need to specify which rules to check — they are already in context. This eliminates all bash scripting for rule checking.
+
+For cross-file analysis, use an `agent` hook:
+
+```json
+{
+  "type": "agent",
+  "prompt": "Trace the data flow from the edited file through managers and accessors. Verify user scoping reaches the data access layer."
+}
+```
+
+The `prompt` type is the right choice for most per-edit rule checks. The `agent` type is reserved for deeper analysis that requires reading additional files or running commands.
 
 ---
 
 ## Migration Checklist
 
 ### Phase 1: Create rules files (no agent changes yet)
-- [ ] Create `docs/review-rules/` directory
-- [ ] Create `code-cleanliness-rules.md` with CC-001 through CC-007
-- [ ] Create `backend-rules.md` with BE-001 through BE-008
-- [ ] Create `react-rules.md` with RC-001 through RC-008
-- [ ] Create `security-rules.md` with SEC-001 through SEC-006
-- [ ] Create `idesign-rules.md` with ID-001 through ID-007
-- [ ] Create `sql-rules.md` with SQL-001 through SQL-007
-- [ ] Create `table-storage-rules.md` with TS-001 through TS-006
-- [ ] Create `ui-design-rules.md` with UI-001 through UI-008
+- [ ] Create `.claude/rules/` directory
+- [ ] Create `code-cleanliness.md` with CC-001 through CC-007 and `paths:` frontmatter
+- [ ] Create `backend.md` with BE-001 through BE-008 and `paths:` frontmatter
+- [ ] Create `react.md` with RC-001 through RC-008 and `paths:` frontmatter
+- [ ] Create `security-universal.md` with SEC-001 through SEC-006 (no `paths:` — always loaded)
+- [ ] Create `idesign.md` with ID-001 through ID-007 and `paths:` frontmatter
+- [ ] Create `sql.md` with SQL-001 through SQL-007 and `paths:` frontmatter
+- [ ] Create `table-storage.md` with TS-001 through TS-006 and `paths:` frontmatter
+- [ ] Create `ui-design.md` with UI-001 through UI-008 and `paths:` frontmatter
 
-### Phase 2: Create hooks, reference docs, and CLAUDE.md template
-- [ ] Create `.claude/hooks/review-backend.sh` (stderr prompts Claude to read rules file)
-- [ ] Create `.claude/hooks/review-frontend.sh`
-- [ ] Create `.claude/hooks/review-security.sh`
-- [ ] Create `.claude/hooks/review-cleanliness.sh`
-- [ ] Create `.claude/hooks/precommit-review.sh`
-- [ ] Create `hooks.json` configuration (PostToolUse + PreCommit)
+### Phase 2: Create hooks, skills, and CLAUDE.md template
+- [ ] Remove `.claude/hooks/review-backend.sh` etc. (no longer needed — `prompt` hooks replace bash scripts)
+- [ ] Remove `.claude/hooks/precommit-review.sh` — replace with `.husky/pre-commit` (Husky setup)
+- [ ] Remove `hooks.json` reference — replace with `.claude/settings.json` using `prompt`/`agent` hooks
+- [ ] Set up Husky: `npm install --save-dev husky && npx husky init`
+- [ ] Create `.claude/settings.json` with `PostToolUse` `prompt` hook configuration
+- [ ] Create `.claude/skills/` directory structure
+- [ ] Create `.claude/skills/review-cleanliness/SKILL.md` with `context: fork` frontmatter
 - [ ] Create `docs/design-system.md` (extracted from modern-ui-agent)
 - [ ] Create `docs/architecture.md` (IDesign layers + project structure)
-- [ ] Create lean CLAUDE.md template (~30-40 lines): 5 universal rules + reference file table
+- [ ] Create lean CLAUDE.md template (~30-40 lines): 5 universal rules + key conventions
 
 ### Phase 3: Restructure agent memory
 - [ ] Update memory instructions in all 5 memory-enabled agents to distinguish Tier 1 (→ CLAUDE.md) vs. Tier 2 (→ agent memory) knowledge
@@ -302,14 +369,14 @@ Add to `.claude/hooks.json`:
 - [ ] Update `bootstrap-agents.md` Phase 5 to include memory tier guidance
 
 ### Phase 4: Update agents
-- [ ] Delete `agents/code-cleanliness.md` (fully replaced by rules+hooks)
-- [ ] Slim `agents/backend-architect.md` -- remove review checklists, keep planning content
-- [ ] Slim `agents/react-architect.md` -- remove anti-patterns list, keep design content
-- [ ] Slim `agents/idesign-architect.md` -- remove violation detection methodology, keep planning
-- [ ] Slim `agents/sql-data-architect.md` -- remove anti-patterns table, keep design content
-- [ ] Slim `agents/table-storage-architect.md` -- remove anti-patterns table, keep design content
-- [ ] Slim `agents/modern-ui-agent.md` -- remove review checklist, keep design system content
-- [ ] Keep `agents/sentinel.md` intact (hook supplements, doesn't replace)
+- [ ] Delete `.claude/agents/code-cleanliness.md` (fully replaced by rules+hooks)
+- [ ] Slim `.claude/agents/backend-architect.md` -- remove review checklists, keep planning content
+- [ ] Slim `.claude/agents/react-architect.md` -- remove anti-patterns list, keep design content
+- [ ] Slim `.claude/agents/idesign-architect.md` -- remove violation detection methodology, keep planning
+- [ ] Slim `.claude/agents/sql-data-architect.md` -- remove anti-patterns table, keep design content
+- [ ] Slim `.claude/agents/table-storage-architect.md` -- remove anti-patterns table, keep design content
+- [ ] Slim `.claude/agents/modern-ui-agent.md` -- remove review checklist, keep design system content
+- [ ] Keep `.claude/agents/sentinel.md` intact (hook supplements, doesn't replace)
 
 ### Phase 5: Update methodology docs
 - [ ] Update `agent-architecture.md` to describe three-layer review architecture and two-tier memory model
