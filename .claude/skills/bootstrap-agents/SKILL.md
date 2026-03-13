@@ -298,8 +298,7 @@ Present final summary:
 ### Architecture
 - Layer 1: Rules auto-load from .claude/rules/ based on file type
 - Layer 2: Pre-commit hook batch-reviews staged changes before commit
-- Layer 3: Skills available for batch review and on-demand specialists
-- Layer 4: Agents available for planning and design sessions
+- Layer 3: Skills + Agents available for batch review, planning, and design sessions
 
 ### Next Steps
 - [Any manual steps needed]

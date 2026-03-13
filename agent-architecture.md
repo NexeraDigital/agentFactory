@@ -14,7 +14,7 @@ The agents are not decorative. They are opinionated, they have hard rules, and t
 
 ## The Agent Roster
 
-Ten agents organized into three tiers based on when and how they engage. Code cleanliness enforcement has been promoted to **rules** (`.claude/rules/`) that auto-load based on file type, backed by a **pre-commit hook** that batch-reviews staged changes before commit. This four-layer architecture (rules → pre-commit → skills → agents) provides continuous enforcement without consuming an agent invocation.
+Ten agents organized into three tiers based on when and how they engage. Code cleanliness enforcement has been promoted to **rules** (`.claude/rules/`) that auto-load based on file type, backed by a **pre-commit hook** that batch-reviews staged changes before commit. This three-layer architecture (rules → pre-commit → skills + agents) provides continuous enforcement without consuming an agent invocation.
 
 ### Tier 1: Always-On Architects (Planning + Review)
 
@@ -250,20 +250,19 @@ Run `/bootstrap-agents` in a target project to automatically set up the complete
 6. **Creates agents** — customized `.claude/agents/` files with project context injected
 7. **Creates skills** — `/debug-investigate`, `/clarify-data`, `/review-cleanliness`
 8. **Creates memory, CLAUDE.md, reference docs** — with two-tier memory guidance
-9. **Presents verification summary** — lists everything created with the four-layer architecture
+9. **Presents verification summary** — lists everything created with the three-layer architecture
 
 The bootstrap skill is defined in `.claude/skills/bootstrap-agents/SKILL.md`.
 
-### Four-Layer Review Architecture
+### Three-Layer Review Architecture
 
-The enforcement architecture creates four layers of quality gates, from zero-cost rule loading through blocking pre-commit review to on-demand specialists:
+The enforcement architecture creates three layers of quality gates, from zero-cost rule loading through blocking pre-commit review to on-demand specialists:
 
 | Layer | Mechanism | When It Fires | What It Catches |
 |-------|-----------|---------------|-----------------|
 | **1. Rules** | `.claude/rules/*.md` with `paths:` frontmatter | Auto-loaded when matching files are in context | Domain-specific patterns (React anti-patterns, SQL anti-patterns, etc.) |
 | **2. Pre-commit** | `templates/hooks/pre-commit` via Husky or git hooks | On `git commit` (any editor, any developer) | Cross-file violations, non-Claude edits, cumulative growth — blocks commit on CRITICAL |
-| **3. Skills** | `/review-cleanliness` batch review | On demand (before commit, during review) | Comprehensive cleanliness sweep of staged changes |
-| **4. Agents** | Specialized agents in `.claude/agents/` | During planning and design sessions | Architectural decisions, security audits, design guidance |
+| **3. Skills + Agents** | `/review-cleanliness`, specialized agents in `.claude/agents/` | On demand (before commit, during review, planning sessions) | Comprehensive cleanliness sweep, architectural decisions, security audits, design guidance |
 
 ### Manual Setup
 

@@ -50,14 +50,13 @@ The skill fetches remaining templates from GitHub and walks you through setup.
 
 ## What You Get
 
-A four-layer quality enforcement architecture:
+A three-layer quality enforcement architecture:
 
 | Layer | What | How |
 |-------|------|-----|
-| **Rules** | 9 rules files in `.claude/rules/` | Auto-load by file type, enforce patterns continuously |
-| **Pre-commit** | Pre-commit hook (Husky or git hooks) | Batch-reviews staged changes, blocks commit on CRITICAL violations |
-| **Skills** | `/debug-investigate`, `/clarify-data`, `/review-cleanliness` | On-demand batch review and specialist routing |
-| **Agents** | 10 specialized agents in `.claude/agents/` | Planning sessions, design guidance, security audits |
+| **1. Rules** | 9 rules files in `.claude/rules/` | Auto-load by file type, enforce patterns continuously |
+| **2. Pre-commit** | Pre-commit hook (Husky or git hooks) | Batch-reviews staged changes, blocks commit on CRITICAL violations |
+| **3. Skills + Agents** | `/debug-investigate`, `/clarify-data`, `/review-cleanliness` + 10 specialized agents | On-demand batch review, specialist routing, planning sessions, design guidance |
 
 ### Agents
 
@@ -119,7 +118,7 @@ agent-architecture.md                      Methodology (10-agent roster, workflo
   agent-memory/                            4 memory directories
 templates/
   hooks/
-    pre-commit                             Pre-commit hook template (Layer 3)
+    pre-commit                             Pre-commit hook template (Layer 2)
 docs/
   architecture.md                          Project architecture template
   design-system.md                         Design system reference template

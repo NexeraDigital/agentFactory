@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Pre-commit hook (Layer 3): Batch review of staged changes against .claude/rules/
+# Pre-commit hook (Layer 2): Batch review of staged changes against .claude/rules/
 #
 # Runs claude --print on staged diffs grouped by domain. Blocks commit if CRITICAL
 # violations are detected. Exits gracefully if claude CLI is not available.
