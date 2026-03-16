@@ -57,26 +57,149 @@ Step-by-step walkthrough demonstrating all 10 agents, 9 rule sets, 5 skills, pre
 
 ## Part 2: Pre-Commit Hook (10 min)
 
-**Goal:** Show the hook blocking CRITICAL violations and allowing commits after fixes.
+**Goal:** Show the hook blocking CRITICAL violations across two layers (static scan + AI review), then fixing them one at a time.
 
-### 2a. Blocked commit
+### 2a. Introduce violations
 
-1. Stage violation files:
-   ```bash
-   git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
-   git add src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
-   ```
-2. Attempt commit: `git commit -m "Add task accessor and auth"`
-3. Hook blocks with CRITICAL findings:
-   - SEC-001: BOLA/IDOR in TaskAccessor (no user scoping)
-   - SEC-006: Hardcoded secret in AuthMiddleware
+Make these edits to create two security violations:
 
-### 2b. Fix and commit
+**File: `src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs`**
 
-1. Fix the CRITICAL violations (add user scoping, remove hardcoded key)
-2. Re-stage and commit — hook passes
+Add a hardcoded API key constant (SEC-006). Replace the class to look like this:
 
-**Key talking point:** The pre-commit hook acts as a safety net, catching critical security and architecture violations before they reach the repo.
+```csharp
+namespace TaskBoard.Api.Infrastructure;
+
+public class AuthMiddleware
+{
+    private readonly RequestDelegate _next;
+    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
+
+    public AuthMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var path = context.Request.Path.Value;
+        if (path?.StartsWith("/api/") != true)
+        {
+            await _next(context);
+            return;
+        }
+
+        var apiKey = context.Request.Headers["X-Api-Key"].FirstOrDefault();
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Missing API key. Expected header: X-Api-Key with value matching configured key.");
+            return;
+        }
+
+        await _next(context);
+    }
+}
+```
+
+Changes: removed `IConfiguration` dependency, added `private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a"`, removed the key validation block.
+
+**File: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`** — `GetTaskByIdAsync` method only
+
+Replace the method signature and body:
+
+```csharp
+// BEFORE (user-scoped):
+public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
+{
+    var entity = await _db.Tasks
+        .Where(t => t.UserId == userId && t.Id == taskId)
+        .FirstOrDefaultAsync(ct);
+    ...
+}
+
+// AFTER (BOLA — no user scoping):
+public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
+{
+    var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+    ...
+}
+```
+
+Changes: removed `string userId` parameter, replaced user-scoped query with direct `FindAsync` by ID only.
+
+### 2b. Stage and commit — BLOCKED by static scan (Layer 1)
+
+```bash
+git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
+git add src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
+git commit -m "Add task accessor and auth"
+```
+
+The static pattern scan (Layer 1) catches `DevApiKey = "sk-demo-..."` as SEC-006:
+
+```
+══════════════════════════════════════════════════════════════
+  COMMIT BLOCKED — Static scan detected security violations
+══════════════════════════════════════════════════════════════
+
+Violations found in staged diff:
+  SEC-006 Possible hardcoded secret:
+  +    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
+```
+
+**Talking point:** The static scan is deterministic — no AI, instant, catches known-bad patterns like hardcoded secrets. It runs *before* the AI layers to save time and cost.
+
+### 2c. Fix SEC-006, retry — BLOCKED by AI review (Layer 2/3)
+
+Revert AuthMiddleware.cs to the clean committed version:
+
+```bash
+git checkout HEAD -- src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
+git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
+git add src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
+git commit -m "Add task accessor and auth"
+```
+
+Static scan passes this time. But the AI review (Layer 2) or Sentinel (Layer 3) catches SEC-001 — the `GetTaskByIdAsync` method does a direct lookup by ID without user scoping (BOLA/IDOR vulnerability):
+
+```
+══════════════════════════════════════════════════════════════
+  COMMIT BLOCKED — Sentinel detected security violations
+══════════════════════════════════════════════════════════════
+
+CRITICAL: SEC-001 BOLA/IDOR in TaskAccessor.GetTaskByIdAsync —
+direct FindAsync(taskId) without user scoping. Any authenticated
+user can access any task by guessing IDs.
+```
+
+**Talking point:** The AI layers catch semantic violations that regex can't — here, the *absence* of user scoping in a data access method. Static analysis sees patterns; AI understands intent.
+
+### 2d. Fix SEC-001, retry — PASSES (all layers)
+
+Revert TaskAccessor.cs to the clean committed version:
+
+```bash
+git checkout HEAD -- src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
+git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
+git commit -m "Add task accessor and auth"
+```
+
+All three layers pass:
+
+```
+[pre-commit] static scan: PASS
+[pre-commit] Reviewing 2 backend file(s)...
+[pre-commit] backend: PASS
+[pre-commit] Running sentinel security review on 2 file(s)...
+[pre-commit] sentinel: PASS
+```
+
+Commit succeeds.
+
+**Key talking point:** Three layers, two violation types, two blocking points. The static scan is fast and free; the AI layers are deeper and catch what regex can't. Together they form a defense-in-depth safety net before code reaches the repo.
+
+> **Shorter alternative (single-pass):** To save ~3 min, skip step 2c. After 2b is blocked, revert both files at once with `git checkout HEAD -- src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`, re-stage, and commit. All layers pass in one attempt. Less dramatic but still shows the hook working.
 
 ---
 
