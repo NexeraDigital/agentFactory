@@ -73,11 +73,13 @@ namespace TaskBoard.Api.Infrastructure;
 public class AuthMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly IConfiguration _configuration;
     private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
 
-    public AuthMiddleware(RequestDelegate next)
+    public AuthMiddleware(RequestDelegate next, IConfiguration configuration)
     {
         _next = next;
+        _configuration = configuration;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -93,7 +95,15 @@ public class AuthMiddleware
         if (string.IsNullOrEmpty(apiKey))
         {
             context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Missing API key. Expected header: X-Api-Key with value matching configured key.");
+            await context.Response.WriteAsync("Authentication required.");
+            return;
+        }
+
+        var configuredKey = _configuration["Authentication:ApiKey"];
+        if (apiKey != configuredKey)
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Authentication required.");
             return;
         }
 
@@ -102,7 +112,7 @@ public class AuthMiddleware
 }
 ```
 
-Changes: removed `IConfiguration` dependency, added `private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a"`, removed the key validation block.
+Changes: added `private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a"` (SEC-006 hardcoded secret). The rest of the class is unchanged.
 
 **File: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`**
 
@@ -112,6 +122,7 @@ In `GetTaskByIdAsync`, remove user scoping:
 // BEFORE (user-scoped):
 public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
 {
+    // VIOLATION SQL-005: Missing AsNoTracking()
     var entity = await _db.Tasks
         .Where(t => t.UserId == userId && t.Id == taskId)
         .FirstOrDefaultAsync(ct);
@@ -184,11 +195,14 @@ Now add a real improvement — fix the SQL-005 violation in `GetTasksByUserAsync
 
 ```csharp
 // BEFORE:
+// VIOLATION SQL-005: Missing AsNoTracking() for read-only query
+// VIOLATION SQL-007: Loads full entity, then maps — should use .Select() projection
 var entities = await _db.Tasks
     .Where(t => t.UserId == userId)
     .ToListAsync(ct);
 
 // AFTER:
+// VIOLATION SQL-007: Loads full entity, then maps — should use .Select() projection
 var entities = await _db.Tasks
     .AsNoTracking()
     .Where(t => t.UserId == userId)
