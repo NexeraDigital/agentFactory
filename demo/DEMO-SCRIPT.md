@@ -61,81 +61,44 @@ Step-by-step walkthrough demonstrating all 10 agents, 9 rule sets, 5 skills, pre
 
 ### 2a. Introduce violations
 
-Make these edits to create two security violations:
+Make two surgical edits to create two security violations:
 
-**File: `src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs`**
+**Edit 1 — SEC-006 hardcoded secret: `src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs`**
 
-Add a hardcoded API key constant (SEC-006). Replace the class to look like this:
+Add one line after the `_configuration` field (line 6). Insert:
 
 ```csharp
-namespace TaskBoard.Api.Infrastructure;
+    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
+```
 
-public class AuthMiddleware
-{
+The file should now have these three fields at the top of the class:
+
+```csharp
     private readonly RequestDelegate _next;
     private readonly IConfiguration _configuration;
-    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
-
-    public AuthMiddleware(RequestDelegate next, IConfiguration configuration)
-    {
-        _next = next;
-        _configuration = configuration;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        var path = context.Request.Path.Value;
-        if (path?.StartsWith("/api/") != true)
-        {
-            await _next(context);
-            return;
-        }
-
-        var apiKey = context.Request.Headers["X-Api-Key"].FirstOrDefault();
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Authentication required.");
-            return;
-        }
-
-        var configuredKey = _configuration["Authentication:ApiKey"];
-        if (apiKey != configuredKey)
-        {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsync("Authentication required.");
-            return;
-        }
-
-        await _next(context);
-    }
-}
+    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";   // ← added
 ```
 
-Changes: added `private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a"` (SEC-006 hardcoded secret). The rest of the class is unchanged.
+Nothing else changes. The key is never used — it just needs to exist in the diff.
 
-**File: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`**
+**Edit 2 — SEC-001 BOLA: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`**
 
-In `GetTaskByIdAsync`, remove user scoping:
+Replace the `GetTaskByIdAsync` method (lines 31-43) with this version that drops `userId` and uses `FindAsync`:
 
 ```csharp
-// BEFORE (user-scoped):
-public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
-{
-    // VIOLATION SQL-005: Missing AsNoTracking()
-    var entity = await _db.Tasks
-        .Where(t => t.UserId == userId && t.Id == taskId)
-        .FirstOrDefaultAsync(ct);
-    ...
-}
+    public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
+    {
+        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+        if (entity is null) return null;
 
-// AFTER (BOLA — no user scoping):
-public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
-{
-    var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
-    ...
-}
+        return new TaskDto(
+            entity.Id, entity.Title, entity.Description, entity.Status,
+            entity.Priority, entity.AssignedTo, entity.CreatedAt, entity.DueDate
+        );
+    }
 ```
+
+Two changes vs. the original: (1) `string userId` parameter removed, (2) the LINQ `.Where().FirstOrDefaultAsync()` replaced with `FindAsync` — a direct primary-key lookup with no user scoping.
 
 ### 2b. Stage and commit — BLOCKED by static scan (Layer 1)
 
