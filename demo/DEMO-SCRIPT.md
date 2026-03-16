@@ -132,9 +132,7 @@ public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, Cancella
 // AFTER (BOLA — no user scoping):
 public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
 {
-    var entity = await _db.Tasks
-        .Where(t => t.Id == taskId)
-        .FirstOrDefaultAsync(ct);
+    var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
     ...
 }
 ```
@@ -179,8 +177,8 @@ Static scan passes this time. But the AI review (Layer 2) or Sentinel (Layer 3) 
 ══════════════════════════════════════════════════════════════
 
 CRITICAL: SEC-001 BOLA/IDOR in TaskAccessor.GetTaskByIdAsync —
-query by taskId without user scoping. Any authenticated user can
-access any task by guessing IDs.
+direct FindAsync(taskId) without user scoping. Any authenticated
+user can access any task by guessing IDs.
 ```
 
 **Talking point:** The AI layers catch semantic violations that regex can't — here, the *absence* of user scoping in a data access method. Static analysis sees patterns; AI understands intent.
