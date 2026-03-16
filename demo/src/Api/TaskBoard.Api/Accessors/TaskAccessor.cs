@@ -4,17 +4,6 @@ using TaskBoard.Api.Entities;
 
 namespace TaskBoard.Api.Accessors;
 
-/// <summary>
-/// VIOLATION FILE
-///
-/// VIOLATES:
-///   SEC-001 — GetTaskByIdAsync does NOT scope by user; any user can
-///             retrieve any task by guessing the ID (BOLA/IDOR).
-///   SQL-005 — Read queries do NOT use AsNoTracking().
-///   SQL-006 — Uses OFFSET/FETCH pagination (degrades at high page numbers).
-///   SQL-007 — Returns full entities instead of projecting to DTOs.
-///   ID-007  — Leaks EF entities across layer boundaries.
-/// </summary>
 public class TaskAccessor : ITaskAccessor
 {
     private readonly TaskDbContext _db;
@@ -38,16 +27,14 @@ public class TaskAccessor : ITaskAccessor
         )).ToList();
     }
 
-    // VIOLATION SEC-001: No user scoping — any authenticated user can
-    // access any task by ID. This is a BOLA/IDOR vulnerability.
-    public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
+    public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
     {
         // VIOLATION SQL-005: Missing AsNoTracking()
-        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+        var entity = await _db.Tasks
+            .Where(t => t.UserId == userId && t.Id == taskId)
+            .FirstOrDefaultAsync(ct);
         if (entity is null) return null;
 
-        // VIOLATION ID-007: Entity leaked across boundary (converted here but
-        // the interface design encourages passing entities)
         return new TaskDto(
             entity.Id, entity.Title, entity.Description, entity.Status,
             entity.Priority, entity.AssignedTo, entity.CreatedAt, entity.DueDate
@@ -77,11 +64,12 @@ public class TaskAccessor : ITaskAccessor
         );
     }
 
-    public async Task<TaskDto> UpdateTaskAsync(int taskId, UpdateTaskRequest request, CancellationToken ct)
+    public async Task<TaskDto> UpdateTaskAsync(string userId, int taskId, UpdateTaskRequest request, CancellationToken ct)
     {
-        // VIOLATION SEC-001: No user scoping on update
-        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct)
-            ?? throw new KeyNotFoundException($"Task {taskId} not found");
+        var entity = await _db.Tasks
+            .Where(t => t.UserId == userId && t.Id == taskId)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new KeyNotFoundException($"Task {taskId} not found for user {userId}");
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -97,11 +85,12 @@ public class TaskAccessor : ITaskAccessor
         );
     }
 
-    public async Task DeleteTaskAsync(int taskId, CancellationToken ct)
+    public async Task DeleteTaskAsync(string userId, int taskId, CancellationToken ct)
     {
-        // VIOLATION SEC-001: No user scoping on delete
-        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct)
-            ?? throw new KeyNotFoundException($"Task {taskId} not found");
+        var entity = await _db.Tasks
+            .Where(t => t.UserId == userId && t.Id == taskId)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new KeyNotFoundException($"Task {taskId} not found for user {userId}");
 
         _db.Tasks.Remove(entity);
         await _db.SaveChangesAsync(ct);

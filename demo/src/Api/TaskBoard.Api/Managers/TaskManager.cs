@@ -35,8 +35,7 @@ public class TaskManager : ITaskManager
 
     public async Task<TaskDto> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
     {
-        var tasks = await _taskAccessor.GetTasksByUserAsync(userId, ct);
-        var task = tasks.FirstOrDefault(t => t.Id == taskId);
+        var task = await _taskAccessor.GetTaskByIdAsync(userId, taskId, ct);
         if (task is null)
             throw new KeyNotFoundException($"Task {taskId} not found for user {userId}");
         return task;
@@ -55,7 +54,7 @@ public class TaskManager : ITaskManager
     public async Task<TaskDto> UpdateTaskAsync(string userId, int taskId, UpdateTaskRequest request, CancellationToken ct)
     {
         await GetTaskByIdAsync(userId, taskId, ct);
-        var task = await _taskAccessor.UpdateTaskAsync(taskId, request, ct);
+        var task = await _taskAccessor.UpdateTaskAsync(userId, taskId, request, ct);
         await _auditLogAccessor.LogActionAsync(userId, "TaskUpdated", taskId.ToString(), $"Updated: {task.Title}");
         return task;
     }
@@ -63,7 +62,7 @@ public class TaskManager : ITaskManager
     public async Task DeleteTaskAsync(string userId, int taskId, CancellationToken ct)
     {
         await GetTaskByIdAsync(userId, taskId, ct);
-        await _taskAccessor.DeleteTaskAsync(taskId, ct);
+        await _taskAccessor.DeleteTaskAsync(userId, taskId, ct);
         await _auditLogAccessor.LogActionAsync(userId, "TaskDeleted", taskId.ToString(), $"Deleted task {taskId}");
     }
 }

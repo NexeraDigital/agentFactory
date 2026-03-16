@@ -1,23 +1,14 @@
 namespace TaskBoard.Api.Infrastructure;
 
-/// <summary>
-/// VIOLATION FILE
-///
-/// VIOLATES:
-///   SEC-006 — Contains a secret (API key) in a code comment and constant.
-///             Secrets should never appear in source code, logs, or responses.
-/// </summary>
 public class AuthMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly IConfiguration _configuration;
 
-    // VIOLATION SEC-006: Hardcoded API key in source code
-    // TODO: Move to Azure Key Vault — current dev key: sk-demo-4f8a2b1c9d3e7f6a
-    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
-
-    public AuthMiddleware(RequestDelegate next)
+    public AuthMiddleware(RequestDelegate next, IConfiguration configuration)
     {
         _next = next;
+        _configuration = configuration;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -33,12 +24,18 @@ public class AuthMiddleware
         if (string.IsNullOrEmpty(apiKey))
         {
             context.Response.StatusCode = 401;
-            // VIOLATION SEC-006: Leaking internal detail in error response
-            await context.Response.WriteAsync("Missing API key. Expected header: X-Api-Key with value matching configured key.");
+            await context.Response.WriteAsync("Authentication required.");
             return;
         }
 
-        // In production, validate against Azure Key Vault or identity provider
+        var configuredKey = _configuration["Authentication:ApiKey"];
+        if (apiKey != configuredKey)
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Authentication required.");
+            return;
+        }
+
         await _next(context);
     }
 }
