@@ -4,7 +4,6 @@ public class AuthMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IConfiguration _configuration;
-    private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a";
 
     public AuthMiddleware(RequestDelegate next, IConfiguration configuration)
     {

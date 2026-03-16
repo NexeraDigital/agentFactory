@@ -44,10 +44,10 @@ fi
 
 # ─── Claude CLI Check ────────────────────────────────────────────────────────
 
+CLAUDE_AVAILABLE=1
 if ! command -v claude &>/dev/null; then
-  echo "[pre-commit] claude CLI not found — skipping AI review"
-  echo "[pre-commit] Install: https://claude.com/claude-code"
-  exit 0
+  echo "[pre-commit] claude CLI not found — AI review will be skipped"
+  CLAUDE_AVAILABLE=0
 fi
 
 # ─── Static Linters (uncomment and adapt) ────────────────────────────────────
@@ -245,12 +245,14 @@ static_scan || FOUND_CRITICAL=1
 
 # ─── Run AI Reviews ──────────────────────────────────────────────────────────
 
-# Skip AI review if static scan already blocked
-if [ "$FOUND_CRITICAL" -eq 0 ]; then
+# Skip AI review if static scan already blocked or claude not available
+if [ "$FOUND_CRITICAL" -ne 0 ]; then
+  echo "[pre-commit] Skipping AI review — static scan already found violations"
+elif [ "$CLAUDE_AVAILABLE" -eq 0 ]; then
+  echo "[pre-commit] Skipping AI review — claude CLI not available"
+else
   review_domain "backend" "$BACKEND_FILES" || FOUND_CRITICAL=1
   review_domain "frontend" "$FRONTEND_FILES" || FOUND_CRITICAL=1
-else
-  echo "[pre-commit] Skipping AI review — static scan already found violations"
 fi
 
 # ─── Sentinel Security Review ───────────────────────────────────────────────
@@ -259,6 +261,8 @@ SECURITY_FILES=$(echo "$STAGED_FILES" | grep -E '\.(cs|ts|tsx|js|jsx|py|go|java|
 
 if [ "$FOUND_CRITICAL" -ne 0 ]; then
   echo "[pre-commit] Skipping sentinel review — violations already found"
+elif [ "$CLAUDE_AVAILABLE" -eq 0 ]; then
+  echo "[pre-commit] Skipping sentinel review — claude CLI not available"
 elif [ -n "$SECURITY_FILES" ]; then
   SECURITY_COUNT=$(echo "$SECURITY_FILES" | wc -l | tr -d ' ')
   echo "[pre-commit] Running sentinel security review on $SECURITY_COUNT file(s)..."
