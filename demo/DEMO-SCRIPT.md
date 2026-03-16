@@ -36,6 +36,9 @@ Step-by-step walkthrough demonstrating all 10 agents, 9 rule sets, 5 skills, pre
    - `idesign.md` → flags Manager → Manager dependency (ID-001)
    - `universal.md` → flags silent fallback (UNI-001), long method (UNI-002), nested ifs (UNI-003)
    - `backend.md` → flags default return on failure (BE-001)
+   - `code-cleanliness.md` → flags imperative loop over declarative style (CC-002)
+   - `CLAUDE.md` → universal rules (method length, nested ifs, constructor params)
+   - `security-universal.md` → loaded but no violations (user scoping present via `userId`)
 
 ### 1b. Frontend rules in action
 
