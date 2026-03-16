@@ -31,7 +31,9 @@ public class TaskAccessor : ITaskAccessor
     public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
     {
         // VIOLATION SQL-005: Missing AsNoTracking()
-        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+        var entity = await _db.Tasks
+            .Where(t => t.Id == taskId)
+            .FirstOrDefaultAsync(ct);
         if (entity is null) return null;
 
         return new TaskDto(
