@@ -159,7 +159,7 @@ Violations found in staged diff:
 
 **Talking point:** The static scan is deterministic — no AI, instant, catches known-bad patterns like hardcoded secrets. It runs *before* the AI layers to save time and cost.
 
-### 2c. Fix SEC-006, retry — BLOCKED by AI review (Layer 2/3)
+### 2c. Fix SEC-006, retry — BLOCKED by static scan (Layer 1, second pattern)
 
 Revert AuthMiddleware.cs to the clean committed version:
 
@@ -169,19 +169,19 @@ git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
 git commit -m "Add task count feature"
 ```
 
-Static scan passes this time. But the AI review (Layer 2) or Sentinel (Layer 3) catches SEC-001 — the `GetTaskByIdAsync` method does a direct lookup by ID without user scoping (BOLA/IDOR vulnerability):
+The SEC-006 secret is gone, but the static scan now catches SEC-001 — the `FindAsync` call in an Accessor file without user scoping:
 
 ```
 ══════════════════════════════════════════════════════════════
-  COMMIT BLOCKED — Critical violations in backend files
+  COMMIT BLOCKED — Static scan detected security violations
 ══════════════════════════════════════════════════════════════
 
-CRITICAL: SEC-001 BOLA/IDOR in TaskAccessor.GetTaskByIdAsync —
-direct FindAsync(taskId) without user scoping. Any authenticated
-user can access any task by guessing IDs.
+Violations found in staged diff:
+  SEC-001 Possible BOLA/IDOR — direct Find/FindAsync without user scoping in Accessor:
+  +    var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
 ```
 
-**Talking point:** The AI layers catch semantic violations that regex can't — here, the *absence* of user scoping in a data access method. Static analysis sees patterns; AI understands intent.
+**Talking point:** The static scan catches two categories: known-bad values (hardcoded secrets) and known-dangerous API patterns (direct entity lookups bypassing user scoping). Neither requires AI — they're instant and deterministic.
 
 ### 2d. Fix SEC-001 and improve performance — PASSES (all layers)
 
@@ -230,7 +230,7 @@ All three layers pass:
 
 Commit succeeds. The `.AsNoTracking()` improvement is committed — both violations are gone.
 
-**Key talking point:** Three layers, two violation types, two blocking points. The static scan is fast and free; the AI layers are deeper and catch what regex can't. Together they form a defense-in-depth safety net before code reaches the repo.
+**Key talking point:** Three layers, two static blocking points, plus AI review for deeper coverage. The static scan is fast, free, and deterministic — it catches known-bad values (secrets) and known-dangerous patterns (direct entity lookups). The AI layers (Layer 2/3) provide additional coverage for semantic violations that regex can't express — cross-file dependency issues, missing authorization chains, and logic errors. Together they form a defense-in-depth safety net before code reaches the repo.
 
 ---
 
