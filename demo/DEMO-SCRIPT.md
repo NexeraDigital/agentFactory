@@ -179,8 +179,8 @@ Static scan passes this time. But the AI review (Layer 2) or Sentinel (Layer 3) 
 ══════════════════════════════════════════════════════════════
 
 CRITICAL: SEC-001 BOLA/IDOR in TaskAccessor.GetTaskByIdAsync —
-direct FindAsync(taskId) without user scoping. Any authenticated
-user can access any task by guessing IDs.
+query by taskId without user scoping. Any authenticated user can
+access any task by guessing IDs.
 ```
 
 **Talking point:** The AI layers catch semantic violations that regex can't — here, the *absence* of user scoping in a data access method. Static analysis sees patterns; AI understands intent.
