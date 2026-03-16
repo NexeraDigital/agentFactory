@@ -104,9 +104,9 @@ public class AuthMiddleware
 
 Changes: removed `IConfiguration` dependency, added `private const string DevApiKey = "sk-demo-4f8a2b1c9d3e7f6a"`, removed the key validation block.
 
-**File: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`** — `GetTaskByIdAsync` method only
+**File: `src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`**
 
-Replace the method signature and body:
+In `GetTaskByIdAsync`, remove user scoping:
 
 ```csharp
 // BEFORE (user-scoped):
@@ -126,14 +126,12 @@ public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
 }
 ```
 
-Changes: removed `string userId` parameter, replaced user-scoped query with direct `FindAsync` by ID only.
-
 ### 2b. Stage and commit — BLOCKED by static scan (Layer 1)
 
 ```bash
 git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
 git add src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
-git commit -m "Add task accessor and auth"
+git commit -m "Add task count feature"
 ```
 
 The static pattern scan (Layer 1) catches `DevApiKey = "sk-demo-..."` as SEC-006:
@@ -157,15 +155,14 @@ Revert AuthMiddleware.cs to the clean committed version:
 ```bash
 git checkout HEAD -- src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
 git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
-git add src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs
-git commit -m "Add task accessor and auth"
+git commit -m "Add task count feature"
 ```
 
 Static scan passes this time. But the AI review (Layer 2) or Sentinel (Layer 3) catches SEC-001 — the `GetTaskByIdAsync` method does a direct lookup by ID without user scoping (BOLA/IDOR vulnerability):
 
 ```
 ══════════════════════════════════════════════════════════════
-  COMMIT BLOCKED — Sentinel detected security violations
+  COMMIT BLOCKED — Critical violations in backend files
 ══════════════════════════════════════════════════════════════
 
 CRITICAL: SEC-001 BOLA/IDOR in TaskAccessor.GetTaskByIdAsync —
@@ -175,31 +172,51 @@ user can access any task by guessing IDs.
 
 **Talking point:** The AI layers catch semantic violations that regex can't — here, the *absence* of user scoping in a data access method. Static analysis sees patterns; AI understands intent.
 
-### 2d. Fix SEC-001, retry — PASSES (all layers)
+### 2d. Fix SEC-001 and improve performance — PASSES (all layers)
 
-Revert TaskAccessor.cs to the clean committed version:
+Revert TaskAccessor.cs to restore the user-scoped `GetTaskByIdAsync`:
 
 ```bash
 git checkout HEAD -- src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
+```
+
+Now add a real improvement — fix the SQL-005 violation in `GetTasksByUserAsync` by adding `.AsNoTracking()`:
+
+```csharp
+// BEFORE:
+var entities = await _db.Tasks
+    .Where(t => t.UserId == userId)
+    .ToListAsync(ct);
+
+// AFTER:
+var entities = await _db.Tasks
+    .AsNoTracking()
+    .Where(t => t.UserId == userId)
+    .ToListAsync(ct);
+```
+
+**Talking point:** "While we're fixing security issues, let's also address that SQL-005 performance warning — read-only queries should use AsNoTracking() to avoid change tracker overhead."
+
+Stage and commit:
+
+```bash
 git add src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs
-git commit -m "Add task accessor and auth"
+git commit -m "perf: add AsNoTracking to read-only task query"
 ```
 
 All three layers pass:
 
 ```
 [pre-commit] static scan: PASS
-[pre-commit] Reviewing 2 backend file(s)...
+[pre-commit] Reviewing 1 backend file(s)...
 [pre-commit] backend: PASS
-[pre-commit] Running sentinel security review on 2 file(s)...
+[pre-commit] Running sentinel security review on 1 file(s)...
 [pre-commit] sentinel: PASS
 ```
 
-Commit succeeds.
+Commit succeeds. The `.AsNoTracking()` improvement is committed — both violations are gone.
 
 **Key talking point:** Three layers, two violation types, two blocking points. The static scan is fast and free; the AI layers are deeper and catch what regex can't. Together they form a defense-in-depth safety net before code reaches the repo.
-
-> **Shorter alternative (single-pass):** To save ~3 min, skip step 2c. After 2b is blocked, revert both files at once with `git checkout HEAD -- src/Api/TaskBoard.Api/Infrastructure/AuthMiddleware.cs src/Api/TaskBoard.Api/Accessors/TaskAccessor.cs`, re-stage, and commit. All layers pass in one attempt. Less dramatic but still shows the hook working.
 
 ---
 

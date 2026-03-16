@@ -97,6 +97,11 @@ public class TaskAccessor : ITaskAccessor
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task<int> GetTaskCountAsync(string userId, CancellationToken ct)
+    {
+        return await _db.Tasks.CountAsync(t => t.UserId == userId, ct);
+    }
+
     // VIOLATION SQL-006: OFFSET/FETCH pagination — degrades linearly at high page numbers.
     // Should use keyset pagination: WHERE Id > @lastId ORDER BY Id
     public async Task<IReadOnlyList<TaskDto>> GetTasksPagedAsync(
