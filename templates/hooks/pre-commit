@@ -224,6 +224,17 @@ static_scan() {
     violations="${violations}\n  SEC-006 Possible hardcoded secret:\n${secret_leak}\n"
   fi
 
+  # SEC-001: BOLA/IDOR — direct entity lookup without user scoping in Accessor files
+  local accessor_diff
+  accessor_diff=$(echo "$CODE_FILES" | grep -i 'accessor' | xargs git diff --cached -- 2>/dev/null || true)
+  if [ -n "$accessor_diff" ]; then
+    local bola_find
+    bola_find=$(echo "$accessor_diff" | grep -n '^+' | grep -v '^+++' | grep -E '\.(FindAsync|Find)\s*\(' || true)
+    if [ -n "$bola_find" ]; then
+      violations="${violations}\n  SEC-001 Possible BOLA/IDOR — direct Find/FindAsync without user scoping in Accessor:\n${bola_find}\n"
+    fi
+  fi
+
   if [ -n "$violations" ]; then
     echo ""
     echo "══════════════════════════════════════════════════════════════"
