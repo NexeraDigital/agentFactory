@@ -132,7 +132,9 @@ public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, Cancella
 // AFTER (BOLA — no user scoping):
 public async Task<TaskDto?> GetTaskByIdAsync(int taskId, CancellationToken ct)
 {
-    var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+    var entity = await _db.Tasks
+        .Where(t => t.Id == taskId)
+        .FirstOrDefaultAsync(ct);
     ...
 }
 ```

@@ -20,7 +20,7 @@ public class TaskAccessor : ITaskAccessor
         var entities = await _db.Tasks
             .Where(t => t.UserId == userId)
             .ToListAsync(ct);
-            
+
 
         return entities.Select(e => new TaskDto(
             e.Id, e.Title, e.Description, e.Status,
@@ -31,7 +31,9 @@ public class TaskAccessor : ITaskAccessor
     public async Task<TaskDto?> GetTaskByIdAsync(string userId, int taskId, CancellationToken ct)
     {
         // VIOLATION SQL-005: Missing AsNoTracking()
-        var entity = await _db.Tasks.FindAsync(new object[] { taskId }, ct);
+        var entity = await _db.Tasks
+            .Where(t => t.UserId == userId && t.Id == taskId)
+            .FirstOrDefaultAsync(ct);
         if (entity is null) return null;
 
         return new TaskDto(
