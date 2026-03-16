@@ -1,0 +1,386 @@
+/**
+ * VIOLATION FILE
+ *
+ * VIOLATES:
+ *   UI-005 — Inconsistent spacing: mixes px values arbitrarily
+ *            instead of using the 8px base grid system.
+ *   UI-006 — Heavy borders everywhere instead of subtle shadows.
+ *            The design system says: "Replace heavy borders with
+ *            layered shadows for depth."
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;  /* Should use Inter or design system font */
+  color: #333333;                  /* Should use #1A1A2E or #0F172A */
+  background: #ffffff;             /* Should use #FAFAFA or #F8F9FA */
+}
+
+/* VIOLATION UI-006: Heavy borders instead of shadows */
+.stat-card {
+  padding: 15px;                   /* VIOLATION UI-005: not on 8px grid */
+  border: 2px solid #cccccc;       /* VIOLATION UI-006: heavy border */
+  border-radius: 4px;              /* Should be 8-12px */
+  margin: 5px;                     /* VIOLATION UI-005: 5px not on grid */
+}
+
+.stat-card-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #999999;
+  margin-bottom: 3px;              /* VIOLATION UI-005: not on grid */
+}
+
+.stat-card-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;                       /* VIOLATION UI-005: 10px not on grid */
+  margin-bottom: 15px;             /* VIOLATION UI-005: 15px not on grid */
+}
+
+/* VIOLATION UI-006: More heavy borders */
+.task-table {
+  border: 2px solid #cccccc;       /* VIOLATION: should use shadow-sm */
+  border-radius: 3px;
+}
+
+.task-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 10px 15px;             /* VIOLATION UI-005: mixed non-grid values */
+  background: #e0e0e0;
+  border-bottom: 2px solid #cccccc; /* VIOLATION UI-006 */
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.task-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 10px 15px;
+  border-bottom: 1px solid #cccccc;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Status badges — flat, no design system compliance */
+.status-todo { color: #666; }
+.status-inprogress { color: blue; }   /* Should use #3B82F6 */
+.status-blocked { color: red; }       /* Should use #EF4444 */
+.status-completed { color: green; }   /* Should use #10B981 */
+
+.priority-high { color: red; font-weight: bold; }
+.priority-medium { color: orange; }
+.priority-low { color: gray; }
+
+/* Dashboard */
+.dashboard { padding: 10px; }         /* VIOLATION UI-005 */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;                /* VIOLATION UI-005 */
+}
+
+.dashboard-controls {
+  display: flex;
+  gap: 7px;                           /* VIOLATION UI-005 */
+}
+
+/* Buttons — no hierarchy, all look the same */
+button, .btn-primary, .btn-secondary, .btn-danger {
+  padding: 6px 12px;
+  border: 1px solid #cccccc;          /* VIOLATION UI-006 */
+  border-radius: 3px;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-primary { background: #1a237e; color: white; border: none; }
+.btn-danger { background: #d32f2f; color: white; border: none; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 4px;
+  width: 600px;
+  max-height: 80vh;
+  overflow: auto;
+  border: 2px solid #cccccc;          /* VIOLATION UI-006 */
+}
+
+.modal-header {
+  padding: 15px 20px;                 /* VIOLATION UI-005 */
+  border-bottom: 2px solid #cccccc;   /* VIOLATION UI-006 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-body {
+  padding: 15px 20px;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 2px solid #cccccc;      /* VIOLATION UI-006 */
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Filters */
+.task-filters {
+  margin-bottom: 15px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 3px;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 6px 10px;
+  border: 1px solid #cccccc;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.filter-summary {
+  font-size: 11px;
+  color: #999;
+  margin-top: 5px;
+}
+
+/* App header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Task list page */
+.task-list-page { padding: 0; }
+.task-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.task-table-empty {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+/* Loading/Error states */
+.loading, .dashboard-loading {
+  padding: 48px;
+  text-align: center;
+  color: #64748b;
+}
+
+.error, .dashboard-error {
+  padding: 48px;
+  text-align: center;
+  color: #ef4444;
+}
+
+/* Productivity section */
+.productivity-section,
+.priority-section,
+.status-section,
+.trend-section {
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 2px solid #cccccc;
+  border-radius: 4px;
+}
+
+.score-display {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.score-value { font-size: 48px; font-weight: bold; }
+.score-label { font-size: 16px; }
+
+.score-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  transition: width 300ms ease;
+}
+
+.priority-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.priority-label { width: 60px; font-size: 13px; }
+.priority-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.priority-bar-fill { height: 100%; }
+.priority-count { width: 30px; text-align: right; font-size: 13px; }
+
+.status-cards {
+  display: flex;
+  gap: 10px;
+}
+
+.status-card {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #cccccc;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.status-card.selected {
+  border-color: #1a237e;
+  background: #f0f0ff;
+}
+
+.status-card-value { font-size: 24px; font-weight: bold; }
+.status-card-label { font-size: 12px; color: #666; }
+.status-card-pct { font-size: 11px; color: #999; }
+
+.trend-indicator {
+  font-size: 18px;
+  font-weight: 600;
+}
+.trend-up { color: green; }
+.trend-stable { color: #666; }
+.trend-down { color: red; }
+
+/* Details table */
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.details-table th,
+.details-table td {
+  padding: 8px 12px;
+  border: 1px solid #cccccc;
+  text-align: left;
+  font-size: 13px;
+}
+
+.details-table th {
+  background: #e0e0e0;
+  font-weight: 600;
+}
+
+.field-group { margin-bottom: 12px; }
+.field-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.field-row {
+  display: flex;
+  gap: 16px;
+}
+
+.field-row .field-group { flex: 1; }
+
+.clear-filters {
+  align-self: flex-end;
+  font-size: 12px;
+  color: #1a237e;
+}

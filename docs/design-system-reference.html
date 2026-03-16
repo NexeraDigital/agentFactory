@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       DESIGN TOKENS — CSS Custom Properties
+       ======================================== */
+    :root {
+      /* Foundation */
+      --color-background: #F8F9FA;
+      --color-surface: #FFFFFF;
+      --color-surface-alt: #F1F3F5;
+      --color-surface-elevated: #FFFFFF;
+      --color-border: rgba(233, 236, 239, 0.7);
+      --color-border-strong: #DEE2E6;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #64748B;
+      --color-text-tertiary: #94A3B8;
+
+      /* Accent */
+      --color-primary: #6366F1;
+      --color-primary-subtle: rgba(99, 102, 241, 0.1);
+      --color-primary-hover: #4F46E5;
+      --color-success: #10B981;
+      --color-success-subtle: rgba(16, 185, 129, 0.1);
+      --color-warning: #F59E0B;
+      --color-warning-subtle: rgba(245, 158, 11, 0.1);
+      --color-danger: #EF4444;
+      --color-danger-subtle: rgba(239, 68, 68, 0.1);
+      --color-info: #3B82F6;
+      --color-info-subtle: rgba(59, 130, 246, 0.1);
+
+      /* AI accent */
+      --color-ai: #8B5CF6;
+      --color-ai-subtle: rgba(139, 92, 246, 0.08);
+      --color-ai-border: #C4B5FD;
+
+      /* Shadows */
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.03);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.03);
+
+      /* Transitions */
+      --transition-fast: 100ms ease;
+      --transition-base: 150ms ease;
+      --transition-slow: 250ms ease;
+      --transition-spring: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+
+      /* Density — comfortable defaults */
+      --density-row-padding: 14px;
+      --density-card-padding: 20px;
+      --density-section-gap: 24px;
+      --density-body-size: 14px;
+
+      /* Blur */
+      --blur-overlay: blur(12px);
+
+      /* Radii */
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    /* Dark mode tokens */
+    [data-theme="dark"] {
+      --color-background: #0F1117;
+      --color-surface: #1A1D27;
+      --color-surface-alt: #242736;
+      --color-surface-elevated: #2A2D3A;
+      --color-border: rgba(46, 50, 65, 0.7);
+      --color-border-strong: #3A3F50;
+      --color-text-primary: #E2E8F0;
+      --color-text-secondary: #94A3B8;
+      --color-text-tertiary: #64748B;
+
+      --color-primary: #818CF8;
+      --color-primary-subtle: rgba(129, 140, 248, 0.14);
+      --color-primary-hover: #6366F1;
+      --color-success: #34D399;
+      --color-success-subtle: rgba(52, 211, 153, 0.12);
+      --color-warning: #FBBF24;
+      --color-warning-subtle: rgba(251, 191, 36, 0.12);
+      --color-danger: #F87171;
+      --color-danger-subtle: rgba(248, 113, 113, 0.12);
+      --color-info: #60A5FA;
+      --color-info-subtle: rgba(96, 165, 250, 0.12);
+
+      --color-ai: #A78BFA;
+      --color-ai-subtle: rgba(167, 139, 250, 0.1);
+      --color-ai-border: #7C3AED;
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Density: compact */
+    [data-density="compact"] {
+      --density-row-padding: 7px;
+      --density-card-padding: 12px;
+      --density-section-gap: 16px;
+      --density-body-size: 12px;
+    }
+
+    /* Density: spacious */
+    [data-density="spacious"] {
+      --density-row-padding: 18px;
+      --density-card-padding: 28px;
+      --density-section-gap: 32px;
+      --density-body-size: 14px;
+    }
+
+    /* ========================================
+       BASE STYLES
+       ======================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: var(--density-body-size);
+      line-height: 1.5;
+      color: var(--color-text-primary);
+      background: var(--color-background);
+      transition: background var(--transition-base), color var(--transition-base);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ========================================
+       LAYOUT
+       ======================================== */
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      backdrop-filter: var(--blur-overlay);
+      background: rgba(255,255,255,0.85);
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+    [data-theme="dark"] .page-header {
+      background: rgba(15,17,23,0.85);
+    }
+
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .main-content {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-6);
+    }
+
+    .section {
+      margin-bottom: var(--space-12);
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: var(--space-1);
+      letter-spacing: -0.02em;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+      line-height: 1.5;
+    }
+
+    .subsection-title {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.25;
+      margin-bottom: var(--space-4);
+      margin-top: var(--space-8);
+    }
+
+    .subsection-title:first-child { margin-top: 0; }
+
+    /* ========================================
+       UTILITY CLASSES
+       ======================================== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); }
+    .flex-row { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+    .flex-col { display: flex; flex-direction: column; gap: var(--space-3); }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1024px) and (min-width: 769px) {
+      .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ========================================
+       COLOR SWATCHES
+       ======================================== */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-3);
+    }
+
+    .swatch {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      background: var(--color-surface);
+    }
+
+    .swatch-color {
+      height: 72px;
+      display: flex;
+      align-items: flex-end;
+      padding: var(--space-2);
+    }
+
+    .swatch-color code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      backdrop-filter: blur(4px);
+    }
+
+    .swatch-label {
+      padding: var(--space-2) var(--space-3);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .swatch-label span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ========================================
+       CARD
+       ======================================== */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--density-card-padding);
+      transition: box-shadow var(--transition-base), transform var(--transition-base);
+    }
+
+    .card-interactive:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .card .overline {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .card .value {
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+      margin-top: var(--space-1);
+    }
+
+    .card .trend {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: var(--space-1);
+    }
+
+    .trend-up { color: var(--color-success); }
+    .trend-down { color: var(--color-danger); }
+
+    /* ========================================
+       TYPOGRAPHY SPECIMEN
+       ======================================== */
+    .type-specimen { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border); }
+    .type-specimen:last-child { border-bottom: none; }
+    .type-specimen .label {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--color-text-tertiary);
+      margin-bottom: var(--space-1);
+    }
+    .type-display { font-size: 26px; font-weight: 600; line-height: 1.2; }
+    .type-heading { font-size: 19px; font-weight: 500; line-height: 1.25; }
+    .type-subheading { font-size: 15px; font-weight: 500; line-height: 1.3; }
+    .type-body { font-size: 14px; font-weight: 400; line-height: 1.5; }
+    .type-caption { font-size: 12px; font-weight: 500; line-height: 1.4; color: var(--color-text-secondary); }
+    .type-overline { font-size: 10px; font-weight: 500; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-tertiary); }
+
+    .tabular-demo {
+      font-variant-numeric: tabular-nums;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    /* ========================================
+       SPACING VISUALIZATION
+       ======================================== */
+    .spacing-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+    }
+
+    .spacing-bar .bar {
+      height: 24px;
+      background: var(--color-primary-subtle);
+      border: 1px solid var(--color-primary);
+      border-radius: 4px;
+      opacity: 0.7;
+    }
+
+    .spacing-bar .label {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--color-text-secondary);
+      min-width: 140px;
+    }
+
+    /* ========================================
+       SHADOW SPECIMENS
+       ======================================== */
+    .shadow-specimen {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-6);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    /* ========================================
+       BUTTONS
+       ======================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      font-family: inherit;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .btn-md {
+      height: 36px;
+      padding: 0 16px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-sm {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--color-primary-hover); }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-strong);
+    }
+    .btn-secondary:hover { background: var(--color-surface-alt); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text-secondary);
+    }
+    .btn-ghost:hover { background: var(--color-surface-alt); color: var(--color-text-primary); }
+
+    .btn-danger {
+      background: var(--color-danger);
+      color: #fff;
+    }
+    .btn-danger:hover { opacity: 0.9; }
+
+    /* ========================================
+       BADGES
+       ======================================== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 999px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .badge-success { background: rgba(16,185,129,0.08); color: #059669; border-color: rgba(16,185,129,0.2); }
+    .badge-warning { background: rgba(245,158,11,0.08); color: #B45309; border-color: rgba(245,158,11,0.2); }
+    .badge-danger  { background: rgba(239,68,68,0.08);  color: #DC2626; border-color: rgba(239,68,68,0.2); }
+    .badge-info    { background: rgba(59,130,246,0.08);  color: #2563EB; border-color: rgba(59,130,246,0.2); }
+    .badge-default { background: var(--color-surface-alt); color: var(--color-text-secondary); border-color: var(--color-border); }
+    .badge-ai      { background: rgba(139,92,246,0.08);  color: #7C3AED; border-color: rgba(139,92,246,0.2); }
+
+    [data-theme="dark"] .badge-success { color: #34D399; }
+    [data-theme="dark"] .badge-warning { color: #FBBF24; }
+    [data-theme="dark"] .badge-danger  { color: #F87171; }
+    [data-theme="dark"] .badge-info    { color: #60A5FA; }
+    [data-theme="dark"] .badge-ai      { color: #A78BFA; }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ========================================
+       FORM INPUTS
+       ======================================== */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 500; }
+    .form-helper { font-size: 12px; color: var(--color-text-secondary); }
+    .form-error { font-size: 12px; color: var(--color-danger); }
+
+    .input {
+      height: 38px;
+      padding: 0 12px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--color-text-primary);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      width: 100%;
+    }
+    .input::placeholder { color: var(--color-text-tertiary); }
+    .input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-subtle); }
+    .input-error { border-color: var(--color-danger); }
+    .input-error:focus { box-shadow: 0 0 0 3px var(--color-danger-subtle); }
+
+    .select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    /* ========================================
+       TABLE
+       ======================================== */
+    .table-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      gap: var(--space-3);
+    }
+
+    .search-input {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--color-surface-alt);
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 0 var(--space-3);
+      height: 32px;
+      transition: border-color var(--transition-fast);
+    }
+    .search-input:focus-within { border-color: var(--color-primary); background: var(--color-surface); }
+    .search-input svg { color: var(--color-text-tertiary); flex-shrink: 0; }
+    .search-input input {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--color-text-primary);
+      outline: none;
+      width: 200px;
+    }
+    .search-input input::placeholder { color: var(--color-text-tertiary); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      background: var(--color-surface-alt);
+      padding: var(--space-2) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    tbody td {
+      padding: var(--density-row-padding) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      font-size: 13px;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--color-surface-alt); }
+
+    .table-actions {
+      display: flex;
+      gap: var(--space-1);
+      justify-content: flex-end;
+    }
+
+    /* ========================================
+       TOAST
+       ======================================== */
+    .toast-demo {
+      position: relative;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-4);
+    }
+
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-3) var(--space-4);
+      width: 380px;
+      max-width: 100%;
+      font-size: 13px;
+      animation: slideInRight 200ms ease-out;
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .toast-success { border-left: 3px solid var(--color-success); }
+    .toast-error   { border-left: 3px solid var(--color-danger); }
+    .toast-warning { border-left: 3px solid var(--color-warning); }
+    .toast-info    { border-left: 3px solid var(--color-info); }
+
+    .toast-content { flex: 1; }
+    .toast-title { font-weight: 500; margin-bottom: 2px; }
+    .toast-desc { color: var(--color-text-secondary); font-size: 12px; }
+    .toast-action { color: var(--color-primary); font-size: 12px; font-weight: 500; cursor: pointer; background: none; border: none; padding: 0; margin-top: 4px; }
+    .toast-close { color: var(--color-text-tertiary); cursor: pointer; background: none; border: none; font-size: 16px; line-height: 1; padding: 2px; }
+
+    /* ========================================
+       MODAL PREVIEW
+       ======================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: var(--blur-overlay);
+      z-index: 100;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 10vh;
+      animation: fadeIn 150ms ease;
+    }
+    .modal-overlay.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .modal-panel {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 560px;
+      animation: scaleIn 200ms ease-out;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+
+    .modal-body {
+      padding: var(--space-6);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* ========================================
+       COMMAND PALETTE PREVIEW
+       ======================================== */
+    .cmd-palette {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 640px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .cmd-input {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .cmd-input svg { color: var(--color-text-tertiary); flex-shrink: 0; }
+
+    .cmd-input input {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--color-text-primary);
+      outline: none;
+      width: 100%;
+    }
+
+    .cmd-results {
+      max-height: 320px;
+      overflow-y: auto;
+      padding: var(--space-2) 0;
+    }
+
+    .cmd-group-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+      padding: var(--space-2) var(--space-4);
+      margin-top: var(--space-1);
+    }
+
+    .cmd-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
+      cursor: pointer;
+      font-size: 14px;
+      transition: background var(--transition-fast);
+    }
+    .cmd-item:hover, .cmd-item.active { background: var(--color-surface-alt); }
+    .cmd-item svg { color: var(--color-text-tertiary); flex-shrink: 0; }
+    .cmd-item .shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--color-text-tertiary);
+      background: var(--color-surface-alt);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--color-border);
+    }
+
+    /* ========================================
+       EMPTY STATE
+       ======================================== */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-12) var(--space-6);
+    }
+
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto var(--space-4);
+      color: var(--color-text-tertiary);
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      max-width: 360px;
+      margin: 0 auto var(--space-6);
+    }
+
+    /* ========================================
+       AI PATTERNS
+       ======================================== */
+    .ai-streaming {
+      padding: var(--space-4);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .ai-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: var(--color-ai);
+      margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .ai-ghost-text {
+      color: var(--color-text-tertiary);
+      opacity: 0.5;
+    }
+
+    .ai-attributed {
+      border-left: 2px solid var(--color-ai-border);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-ai-subtle);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ========================================
+       SURFACE ELEVATION DEMO
+       ======================================== */
+    .elevation-demo {
+      display: flex;
+      gap: var(--space-4);
+      align-items: flex-end;
+      padding: var(--space-6);
+      background: var(--color-background);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+    }
+
+    .elevation-tier {
+      flex: 1;
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .elevation-tier .tier-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-tertiary);
+      margin-bottom: var(--space-1);
+    }
+
+    /* ========================================
+       BREAKPOINT DEMO
+       ======================================== */
+    .breakpoint-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 6px 0;
+    }
+    .breakpoint-bar .bp-visual {
+      height: 8px;
+      background: var(--color-primary-subtle);
+      border: 1px solid var(--color-primary);
+      border-radius: 4px;
+      opacity: 0.6;
+    }
+    .breakpoint-bar .bp-label {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--color-text-secondary);
+      min-width: 60px;
+    }
+    .breakpoint-bar .bp-value {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--color-text-tertiary);
+    }
+
+    /* ========================================
+       DENSITY TOGGLE VISUAL
+       ======================================== */
+    .density-card-demo {
+      transition: padding var(--transition-slow);
+    }
+
+    /* ========================================
+       FROSTED GLASS DEMO
+       ======================================== */
+    .glass-demo {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      height: 200px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-info), var(--color-success));
+    }
+    .glass-panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      text-align: center;
+      font-weight: 500;
+      color: #0F172A;
+    }
+    [data-theme="dark"] .glass-panel {
+      background: rgba(15,17,23,0.7);
+      border-color: rgba(255,255,255,0.1);
+      color: #E2E8F0;
+    }
+
+    /* ========================================
+       CODE BLOCK
+       ======================================== */
+    .code-block {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3) var(--space-4);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--color-text-primary);
+    }
+
+    .token-line {
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .token-prop { color: var(--color-primary); }
+    .token-value { color: var(--color-success); }
+    .token-comment { color: var(--color-text-tertiary); }
+
+    /* ========================================
+       NAV (SIDEBAR DEMO)
+       ======================================== */
+    .sidebar-demo {
+      width: 240px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) 0;
+      overflow: hidden;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+      padding: var(--space-3) var(--space-4) var(--space-1);
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast);
+      border-left: 3px solid transparent;
+    }
+    .sidebar-item:hover { background: var(--color-surface-alt); color: var(--color-text-primary); }
+    .sidebar-item.active {
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      border-left-color: var(--color-primary);
+      font-weight: 500;
+    }
+    .sidebar-item svg { flex-shrink: 0; }
+
+    /* ========================================
+       SKELETON LOADING
+       ======================================== */
+    .skeleton {
+      background: var(--color-surface-alt);
+      border-radius: 4px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ========================================
+       REDUCED MOTION
+       ======================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ========================================
+       SCROLLBAR
+       ======================================== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE HEADER -->
+  <header class="page-header">
+    <h1>Design System Reference</h1>
+    <div class="header-controls">
+      <button class="btn btn-sm btn-secondary" id="densityToggle" title="Toggle density">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10H3M21 6H3M21 14H3M21 18H3"/></svg>
+        <span id="densityLabel">Comfortable</span>
+      </button>
+      <button class="btn btn-sm btn-secondary" id="themeToggle" title="Toggle dark mode">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- ============================
+         1. COLOR ARCHITECTURE
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Color Architecture</h2>
+      <p class="section-subtitle">Neutral-first palette with strategic accent usage. All values mapped to CSS custom properties for theming and dark mode.</p>
+
+      <h3 class="subsection-title">Foundation</h3>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#F8F9FA; border:1px solid #E9ECEF;"><code>#F8F9FA</code></div>
+          <div class="swatch-label">Background<span>--color-background</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#FFFFFF; border:1px solid #E9ECEF;"><code>#FFFFFF</code></div>
+          <div class="swatch-label">Surface<span>--color-surface</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#F1F3F5; border:1px solid #E9ECEF;"><code>#F1F3F5</code></div>
+          <div class="swatch-label">Surface Alt<span>--color-surface-alt</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#E9ECEF;"><code>#E9ECEF</code></div>
+          <div class="swatch-label">Border<span>--color-border</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#DEE2E6;"><code>#DEE2E6</code></div>
+          <div class="swatch-label">Border Strong<span>--color-border-strong</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#0F172A;"><code>#0F172A</code></div>
+          <div class="swatch-label">Text Primary<span>--color-text-primary</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#64748B;"><code>#64748B</code></div>
+          <div class="swatch-label">Text Secondary<span>--color-text-secondary</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#94A3B8;"><code>#94A3B8</code></div>
+          <div class="swatch-label">Text Tertiary<span>--color-text-tertiary</span></div>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Accent</h3>
+      <div class="swatch-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#6366F1;"><code>#6366F1</code></div>
+          <div class="swatch-label">Primary<span>--color-primary</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#10B981;"><code>#10B981</code></div>
+          <div class="swatch-label">Success<span>--color-success</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#F59E0B;"><code>#F59E0B</code></div>
+          <div class="swatch-label">Warning<span>--color-warning</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#EF4444;"><code>#EF4444</code></div>
+          <div class="swatch-label">Danger<span>--color-danger</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#3B82F6;"><code>#3B82F6</code></div>
+          <div class="swatch-label">Info<span>--color-info</span></div>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Surface Elevation</h3>
+      <div class="elevation-demo">
+        <div class="elevation-tier" style="background:var(--color-background); height:60px;">
+          <div class="tier-label">Tier 0</div>Base
+        </div>
+        <div class="elevation-tier" style="background:var(--color-surface); box-shadow:var(--shadow-sm); height:80px;">
+          <div class="tier-label">Tier 1</div>Raised
+        </div>
+        <div class="elevation-tier" style="background:var(--color-surface-alt); box-shadow:var(--shadow-md); height:100px;">
+          <div class="tier-label">Tier 2</div>Overlay
+        </div>
+        <div class="elevation-tier" style="background:var(--color-surface-elevated); box-shadow:var(--shadow-lg); height:120px;">
+          <div class="tier-label">Tier 3</div>Floating
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Design Tokens</h3>
+      <div class="code-block">
+        <div class="token-line"><span class="token-comment">/* Map every palette value to a semantic token */</span></div>
+        <div class="token-line"><span class="token-prop">--color-background</span>: <span class="token-value">#F8F9FA</span>;</div>
+        <div class="token-line"><span class="token-prop">--color-surface</span>: <span class="token-value">#FFFFFF</span>;</div>
+        <div class="token-line"><span class="token-prop">--color-text-primary</span>: <span class="token-value">#0F172A</span>;</div>
+        <div class="token-line"><span class="token-prop">--color-primary</span>: <span class="token-value">#6366F1</span>; <span class="token-comment">/* ADAPT: brand color */</span></div>
+        <div class="token-line"><span class="token-comment">/* Swap values in [data-theme="dark"] for dark mode */</span></div>
+      </div>
+    </section>
+
+    <!-- ============================
+         2. TYPOGRAPHY
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Typography Scale</h2>
+      <p class="section-subtitle">Systematic type scale with Inter, line-height ratios, and tabular number support.</p>
+
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="type-specimen">
+          <div class="label">Display — 24-28px / semibold 600 / line-height 1.2</div>
+          <div class="type-display">Dashboard Overview</div>
+        </div>
+        <div class="type-specimen">
+          <div class="label">Heading — 18-20px / medium 500 / line-height 1.25</div>
+          <div class="type-heading">Recent Activity</div>
+        </div>
+        <div class="type-specimen">
+          <div class="label">Subheading — 15-16px / medium 500 / line-height 1.3</div>
+          <div class="type-subheading">Pipeline Configuration</div>
+        </div>
+        <div class="type-specimen">
+          <div class="label">Body — 13-14px / regular 400 / line-height 1.5</div>
+          <div class="type-body">The quick brown fox jumps over the lazy dog. This is the primary content size used for paragraphs, descriptions, and general interface text.</div>
+        </div>
+        <div class="type-specimen">
+          <div class="label">Caption — 11-12px / medium 500 / line-height 1.4</div>
+          <div class="type-caption">Last updated 3 minutes ago</div>
+        </div>
+        <div class="type-specimen">
+          <div class="label">Overline — 10-11px / medium 500 / uppercase / letter-spacing 0.05em</div>
+          <div class="type-overline">Total Revenue</div>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Tabular Numbers</h3>
+      <div class="card">
+        <p style="font-size:12px; color:var(--color-text-secondary); margin-bottom:var(--space-3);">font-variant-numeric: tabular-nums — digits align in columns</p>
+        <div class="tabular-demo" style="display:flex; flex-direction:column; gap:2px;">
+          <span>$1,234,567.89</span>
+          <span>$&nbsp;&nbsp;&nbsp;98,765.43</span>
+          <span>$&nbsp;&nbsp;&nbsp;&nbsp;2,100.00</span>
+          <span>$&nbsp;&nbsp;456,789.12</span>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Font Stack</h3>
+      <div class="grid-3">
+        <div class="card">
+          <div class="type-overline">Recommended</div>
+          <div style="font-size:16px; font-weight:500; margin-top:var(--space-2);">Inter</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-top:4px;">Clarity at small sizes, data-heavy UIs</div>
+        </div>
+        <div class="card">
+          <div class="type-overline">Alternative</div>
+          <div style="font-size:16px; font-weight:500; margin-top:var(--space-2);">Satoshi</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-top:4px;">Contemporary geometric, warmth + precision</div>
+        </div>
+        <div class="card">
+          <div class="type-overline">Monospace</div>
+          <div style="font-size:16px; font-weight:500; margin-top:var(--space-2); font-family:'JetBrains Mono',monospace;">JetBrains Mono</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-top:4px;">Code, data values, metrics</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         3. SPACING SYSTEM
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Spacing System</h2>
+      <p class="section-subtitle">8px base grid with consistent application. Responsive breakpoints and container query support.</p>
+
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="spacing-bar"><span class="label">4px — Tight</span><div class="bar" style="width:4px;"></div></div>
+        <div class="spacing-bar"><span class="label">8px — Compact</span><div class="bar" style="width:8px;"></div></div>
+        <div class="spacing-bar"><span class="label">12px — Default</span><div class="bar" style="width:12px;"></div></div>
+        <div class="spacing-bar"><span class="label">16px — Comfortable</span><div class="bar" style="width:16px;"></div></div>
+        <div class="spacing-bar"><span class="label">24px — Spacious</span><div class="bar" style="width:24px;"></div></div>
+        <div class="spacing-bar"><span class="label">32px — Generous</span><div class="bar" style="width:32px;"></div></div>
+        <div class="spacing-bar"><span class="label">48px — Dramatic</span><div class="bar" style="width:48px;"></div></div>
+      </div>
+
+      <h3 class="subsection-title">Responsive Breakpoints</h3>
+      <div class="card">
+        <div class="breakpoint-bar"><span class="bp-label">sm</span><div class="bp-visual" style="width:100px;"></div><span class="bp-value">640px</span></div>
+        <div class="breakpoint-bar"><span class="bp-label">md</span><div class="bp-visual" style="width:140px;"></div><span class="bp-value">768px</span></div>
+        <div class="breakpoint-bar"><span class="bp-label">lg</span><div class="bp-visual" style="width:200px;"></div><span class="bp-value">1024px</span></div>
+        <div class="breakpoint-bar"><span class="bp-label">xl</span><div class="bp-visual" style="width:260px;"></div><span class="bp-value">1280px</span></div>
+        <div class="breakpoint-bar"><span class="bp-label">2xl</span><div class="bp-visual" style="width:320px;"></div><span class="bp-value">1536px</span></div>
+      </div>
+    </section>
+
+    <!-- ============================
+         4. SHADOW SYSTEM
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Shadow System</h2>
+      <p class="section-subtitle">Layered shadows for depth, plus frosted glass overlay via backdrop-filter.</p>
+
+      <div class="grid-4" style="margin-bottom:var(--space-6);">
+        <div class="shadow-specimen" style="box-shadow:var(--shadow-xs);">shadow-xs<br><span style="font-size:11px; color:var(--color-text-tertiary);">Subtle lift</span></div>
+        <div class="shadow-specimen" style="box-shadow:var(--shadow-sm);">shadow-sm<br><span style="font-size:11px; color:var(--color-text-tertiary);">Cards</span></div>
+        <div class="shadow-specimen" style="box-shadow:var(--shadow-md);">shadow-md<br><span style="font-size:11px; color:var(--color-text-tertiary);">Hover state</span></div>
+        <div class="shadow-specimen" style="box-shadow:var(--shadow-lg);">shadow-lg<br><span style="font-size:11px; color:var(--color-text-tertiary);">Modals</span></div>
+      </div>
+
+      <h3 class="subsection-title">Frosted Glass Overlay</h3>
+      <div class="glass-demo">
+        <div class="glass-panel">
+          <div style="font-size:13px; margin-bottom:4px;">backdrop-filter: blur(12px)</div>
+          <div style="font-size:11px; opacity:0.7;">Semi-transparent background</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         5. COMPONENTS
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Component Patterns</h2>
+      <p class="section-subtitle">Reusable UI patterns following the design token system.</p>
+
+      <!-- Buttons -->
+      <h3 class="subsection-title">Buttons</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div style="margin-bottom:var(--space-4);">
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Default (36px)</div>
+          <div class="flex-row">
+            <button class="btn btn-md btn-primary">Primary Action</button>
+            <button class="btn btn-md btn-secondary">Secondary</button>
+            <button class="btn btn-md btn-ghost">Ghost</button>
+            <button class="btn btn-md btn-danger">Delete</button>
+            <button class="btn btn-md btn-icon btn-secondary" title="Settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+          </div>
+        </div>
+        <div>
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Small (32px)</div>
+          <div class="flex-row">
+            <button class="btn btn-sm btn-primary">Primary</button>
+            <button class="btn btn-sm btn-secondary">Secondary</button>
+            <button class="btn btn-sm btn-ghost">Ghost</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <h3 class="subsection-title">Status Badges</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="flex-row">
+          <span class="badge badge-success"><span class="badge-dot"></span>Active</span>
+          <span class="badge badge-warning"><span class="badge-dot"></span>Pending</span>
+          <span class="badge badge-danger"><span class="badge-dot"></span>Error</span>
+          <span class="badge badge-info"><span class="badge-dot"></span>In Progress</span>
+          <span class="badge badge-default">Draft</span>
+          <span class="badge badge-ai">AI Generated</span>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <h3 class="subsection-title">Stat Cards</h3>
+      <div class="grid-4" style="margin-bottom:var(--space-6);">
+        <div class="card card-interactive">
+          <div class="overline">Total Revenue</div>
+          <div class="value">$48,295</div>
+          <div class="trend trend-up">+12.5% from last month</div>
+        </div>
+        <div class="card card-interactive">
+          <div class="overline">Active Users</div>
+          <div class="value">2,847</div>
+          <div class="trend trend-up">+8.2% from last month</div>
+        </div>
+        <div class="card card-interactive">
+          <div class="overline">Error Rate</div>
+          <div class="value">0.12%</div>
+          <div class="trend trend-down">-0.03% from last month</div>
+        </div>
+        <div class="card card-interactive">
+          <div class="overline">Avg Response</div>
+          <div class="value">142ms</div>
+          <div class="trend trend-up">-18ms from last month</div>
+        </div>
+      </div>
+
+      <!-- Forms -->
+      <h3 class="subsection-title">Forms & Inputs</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input class="input" type="text" placeholder="Enter your name">
+            <span class="form-helper">As it appears on your account.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input class="input input-error" type="email" value="invalid@">
+            <span class="form-error">Please enter a valid email address.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select class="input select">
+              <option>Select a role...</option>
+              <option>Admin</option>
+              <option>Editor</option>
+              <option>Viewer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">API Key</label>
+            <input class="input" type="text" placeholder="sk-..." style="font-family:'JetBrains Mono',monospace; font-size:12px;" disabled>
+            <span class="form-helper">Read-only. Regenerate from settings.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Sidebar -->
+      <h3 class="subsection-title">Navigation (Sidebar)</h3>
+      <div style="margin-bottom:var(--space-6);">
+        <div class="sidebar-demo">
+          <div class="sidebar-section-label">Overview</div>
+          <div class="sidebar-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+          </div>
+          <div class="sidebar-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Analytics
+          </div>
+          <div class="sidebar-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Users
+          </div>
+          <div class="sidebar-section-label">Settings</div>
+          <div class="sidebar-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuration
+          </div>
+          <div class="sidebar-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Security
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <h3 class="subsection-title">Table</h3>
+      <div class="table-container" style="margin-bottom:var(--space-6);">
+        <div class="table-toolbar">
+          <div class="search-input">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Search deployments...">
+          </div>
+          <div class="flex-row">
+            <button class="btn btn-sm btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filter
+            </button>
+            <button class="btn btn-sm btn-primary">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Deploy
+            </button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Environment</th>
+              <th>Status</th>
+              <th>Version</th>
+              <th>Deployed</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:500;">api-gateway</td>
+              <td>Production</td>
+              <td><span class="badge badge-success"><span class="badge-dot"></span>Healthy</span></td>
+              <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">v3.12.1</td>
+              <td style="color:var(--color-text-secondary);">2 hours ago</td>
+              <td class="table-actions">
+                <button class="btn btn-sm btn-ghost">Logs</button>
+                <button class="btn btn-sm btn-ghost">Rollback</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">auth-service</td>
+              <td>Production</td>
+              <td><span class="badge badge-success"><span class="badge-dot"></span>Healthy</span></td>
+              <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">v2.8.4</td>
+              <td style="color:var(--color-text-secondary);">1 day ago</td>
+              <td class="table-actions">
+                <button class="btn btn-sm btn-ghost">Logs</button>
+                <button class="btn btn-sm btn-ghost">Rollback</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">worker-queue</td>
+              <td>Staging</td>
+              <td><span class="badge badge-warning"><span class="badge-dot"></span>Deploying</span></td>
+              <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">v1.5.0-rc.2</td>
+              <td style="color:var(--color-text-secondary);">Just now</td>
+              <td class="table-actions">
+                <button class="btn btn-sm btn-ghost">Logs</button>
+                <button class="btn btn-sm btn-ghost">Cancel</button>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:500;">notification-svc</td>
+              <td>Production</td>
+              <td><span class="badge badge-danger"><span class="badge-dot"></span>Degraded</span></td>
+              <td style="font-family:'JetBrains Mono',monospace; font-size:12px;">v4.1.0</td>
+              <td style="color:var(--color-text-secondary);">5 hours ago</td>
+              <td class="table-actions">
+                <button class="btn btn-sm btn-ghost">Logs</button>
+                <button class="btn btn-sm btn-ghost">Rollback</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Toasts -->
+      <h3 class="subsection-title">Toasts & Notifications</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="toast-demo">
+          <div class="toast toast-success">
+            <div class="toast-content">
+              <div class="toast-title">Deployment successful</div>
+              <div class="toast-desc">api-gateway v3.12.1 is now live in production.</div>
+            </div>
+            <button class="toast-close">&times;</button>
+          </div>
+          <div class="toast toast-error">
+            <div class="toast-content">
+              <div class="toast-title">Build failed</div>
+              <div class="toast-desc">worker-queue failed at step 3/5. Check logs for details.</div>
+              <button class="toast-action">View Logs</button>
+            </div>
+            <button class="toast-close">&times;</button>
+          </div>
+          <div class="toast toast-info">
+            <div class="toast-content">
+              <div class="toast-title">New version available</div>
+              <div class="toast-desc">auth-service v2.9.0 is ready to deploy.</div>
+              <button class="toast-action">Deploy Now</button>
+            </div>
+            <button class="toast-close">&times;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <h3 class="subsection-title">Empty State</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <h3>No deployments yet</h3>
+          <p>Get started by connecting your repository and creating your first deployment pipeline.</p>
+          <button class="btn btn-md btn-primary">Create Deployment</button>
+        </div>
+      </div>
+
+      <!-- Command Palette -->
+      <h3 class="subsection-title">Command Palette (Cmd+K)</h3>
+      <div style="display:flex; justify-content:center; margin-bottom:var(--space-6);">
+        <div class="cmd-palette">
+          <div class="cmd-input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="Type a command or search..." value="deploy">
+          </div>
+          <div class="cmd-results">
+            <div class="cmd-group-label">Actions</div>
+            <div class="cmd-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              Deploy to production
+              <span class="shortcut">Ctrl+D</span>
+            </div>
+            <div class="cmd-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+              Deploy to staging
+              <span class="shortcut">Ctrl+S</span>
+            </div>
+            <div class="cmd-group-label">Pages</div>
+            <div class="cmd-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Deployment history
+            </div>
+            <div class="cmd-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Deployment settings
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <h3 class="subsection-title">Modal / Dialog</h3>
+      <div class="card" style="margin-bottom:var(--space-6); text-align:center; padding:var(--space-8);">
+        <p style="color:var(--color-text-secondary); font-size:13px; margin-bottom:var(--space-4);">Click to preview the modal overlay with frosted glass backdrop.</p>
+        <button class="btn btn-md btn-primary" id="openModal">Open Modal</button>
+      </div>
+
+      <!-- Loading States -->
+      <h3 class="subsection-title">Loading States (Skeleton)</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div style="display:flex; gap:var(--space-4);">
+          <div style="flex:1;">
+            <div class="skeleton" style="width:80px; height:10px; margin-bottom:10px;"></div>
+            <div class="skeleton" style="width:120px; height:28px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:140px; height:12px;"></div>
+          </div>
+          <div style="flex:1;">
+            <div class="skeleton" style="width:80px; height:10px; margin-bottom:10px;"></div>
+            <div class="skeleton" style="width:100px; height:28px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:160px; height:12px;"></div>
+          </div>
+          <div style="flex:1;">
+            <div class="skeleton" style="width:80px; height:10px; margin-bottom:10px;"></div>
+            <div class="skeleton" style="width:90px; height:28px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="width:130px; height:12px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         6. INTERACTION & MOTION
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Interaction & Motion</h2>
+      <p class="section-subtitle">Consistent transitions with reduced-motion support. All values as CSS custom properties.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Transition Tokens</div>
+          <div class="code-block">
+            <div class="token-line"><span class="token-prop">--transition-fast</span>: <span class="token-value">100ms ease</span></div>
+            <div class="token-line"><span class="token-prop">--transition-base</span>: <span class="token-value">150ms ease</span></div>
+            <div class="token-line"><span class="token-prop">--transition-slow</span>: <span class="token-value">250ms ease</span></div>
+            <div class="token-line"><span class="token-prop">--transition-spring</span>: <span class="token-value">300ms cubic-bezier(0.34, 1.56, 0.64, 1)</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Page Transitions</div>
+          <div class="code-block">
+            <div class="token-line"><span class="token-comment">/* Route change — simple crossfade */</span></div>
+            <div class="token-line"><span class="token-prop">opacity</span>: <span class="token-value">150ms ease</span></div>
+            <div class="token-line"><span class="token-comment">/* Wizard/step navigation */</span></div>
+            <div class="token-line"><span class="token-prop">transform + opacity</span>: <span class="token-value">200ms ease</span></div>
+            <div class="token-line"><span class="token-comment">/* List reorder ≤ 200ms */</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         7. DENSITY MODES
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Density Modes</h2>
+      <p class="section-subtitle">Toggle density using the header control. Adjusts padding, gaps, and font sizes via CSS custom properties.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-2);">Compact</div>
+          <div style="font-size:13px; color:var(--color-text-secondary);">
+            Row padding: 6-8px<br>Card padding: 12px<br>Body: 12px<br>
+            <span style="font-size:12px; color:var(--color-text-tertiary);">Power users, dense dashboards</span>
+          </div>
+        </div>
+        <div class="card" style="border-color:var(--color-primary); border-width:2px;">
+          <div class="type-overline" style="margin-bottom:var(--space-2); color:var(--color-primary);">Comfortable (default)</div>
+          <div style="font-size:13px; color:var(--color-text-secondary);">
+            Row padding: 12-16px<br>Card padding: 16-24px<br>Body: 14px<br>
+            <span style="font-size:12px; color:var(--color-text-tertiary);">Standard workflows, forms</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-2);">Spacious</div>
+          <div style="font-size:13px; color:var(--color-text-secondary);">
+            Row padding: 16-20px<br>Card padding: 24-32px<br>Body: 14px<br>
+            <span style="font-size:12px; color:var(--color-text-tertiary);">Onboarding, low-data views</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         8. AI UI PATTERNS
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">AI UI Patterns</h2>
+      <p class="section-subtitle">Patterns for AI-generated content and AI-assisted interactions.</p>
+
+      <h3 class="subsection-title">Streaming Text</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="ai-streaming">
+          Based on the deployment logs, the issue appears to be a timeout in the auth-service health check. The container starts successfully but fails the readiness probe after 30 seconds. I recommend increasing the <code style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--color-surface-alt); padding:2px 6px; border-radius:4px;">initialDelaySeconds</code> to 60 and checking the database connection pool<span class="ai-cursor"></span>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Inline Suggestion (Ghost Text)</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:13px; padding:var(--space-4); background:var(--color-surface-alt); border-radius:var(--radius-sm); line-height:1.8;">
+          <span style="color:var(--color-primary);">const</span> handler = <span style="color:var(--color-primary);">async</span> (req, res) => {<br>
+          &nbsp;&nbsp;<span style="color:var(--color-primary);">const</span> { id } = req.params;<br>
+          &nbsp;&nbsp;<span class="ai-ghost-text">const result = await service.getById(id);<br>
+          &nbsp;&nbsp;if (!result) return res.status(404).json({ error: 'Not found' });<br>
+          &nbsp;&nbsp;return res.json(result);</span>
+        </div>
+        <div style="font-size:12px; color:var(--color-text-tertiary); margin-top:var(--space-2); padding:0 var(--space-4);">
+          Press <kbd style="background:var(--color-surface-alt); border:1px solid var(--color-border); padding:1px 6px; border-radius:4px; font-size:11px; font-family:'JetBrains Mono',monospace;">Tab</kbd> to accept &middot; <kbd style="background:var(--color-surface-alt); border:1px solid var(--color-border); padding:1px 6px; border-radius:4px; font-size:11px; font-family:'JetBrains Mono',monospace;">Esc</kbd> to dismiss
+        </div>
+      </div>
+
+      <h3 class="subsection-title">AI-Attributed Content</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-3);">
+          <span class="badge badge-ai">AI</span>
+          <span style="font-size:12px; color:var(--color-text-secondary);">Generated summary</span>
+        </div>
+        <div class="ai-attributed">
+          The deployment pipeline has 3 stages: build, test, and deploy. The build stage compiles the application and creates a Docker image. Tests run in parallel across 4 workers. The deploy stage uses a blue-green strategy with automatic rollback on health check failure.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         9. ACCESSIBILITY
+         ============================ -->
+    <section class="section">
+      <h2 class="section-title">Accessibility Baseline</h2>
+      <p class="section-subtitle">Minimum requirements for all components. Never rely on color alone.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Contrast Ratios</div>
+          <div style="font-size:13px; display:flex; flex-direction:column; gap:var(--space-2);">
+            <div style="display:flex; justify-content:space-between;"><span>Body text</span><span style="font-weight:500;">4.5:1 minimum</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Large text (18px+)</span><span style="font-weight:500;">3:1 minimum</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>UI components</span><span style="font-weight:500;">3:1 minimum</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="type-overline" style="margin-bottom:var(--space-3);">Touch & Focus</div>
+          <div style="font-size:13px; display:flex; flex-direction:column; gap:var(--space-2);">
+            <div style="display:flex; justify-content:space-between;"><span>Mobile touch target</span><span style="font-weight:500;">44 &times; 44px</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Desktop touch target</span><span style="font-weight:500;">32 &times; 32px</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Focus ring</span><span style="font-weight:500;">Always visible</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:var(--space-4);">
+        <div style="font-size:13px; color:var(--color-text-secondary);">
+          All new animations must respect <code style="font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--color-surface-alt); padding:2px 6px; border-radius:4px;">prefers-reduced-motion: reduce</code> — disable transforms and use instant opacity changes only. Never communicate status through color alone; pair with icons, text, or patterns.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3>Confirm Deployment</h3>
+        <button class="btn btn-icon btn-ghost toast-close" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px; margin-bottom:var(--space-4);">You are about to deploy <strong>api-gateway v3.12.2</strong> to production.</p>
+        <div style="background:var(--color-warning-subtle); border:1px solid rgba(245,158,11,0.2); border-radius:var(--radius-sm); padding:var(--space-3) var(--space-4); font-size:13px; display:flex; gap:var(--space-2); align-items:flex-start;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="2" style="flex-shrink:0; margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>This will replace the currently running version. A rollback will be available for 24 hours.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-md btn-secondary" id="cancelModal">Cancel</button>
+        <button class="btn btn-md btn-primary">Deploy to Production</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeLabel = document.getElementById('themeLabel');
+    const themeIcon = document.getElementById('themeIcon');
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      themeLabel.textContent = isDark ? 'Dark' : 'Light';
+      themeIcon.innerHTML = isDark
+        ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+        : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    });
+
+    // Density toggle
+    const densityToggle = document.getElementById('densityToggle');
+    const densityLabel = document.getElementById('densityLabel');
+    const densities = ['compact', 'comfortable', 'spacious'];
+    let densityIndex = 1;
+
+    densityToggle.addEventListener('click', () => {
+      densityIndex = (densityIndex + 1) % densities.length;
+      html.setAttribute('data-density', densities[densityIndex]);
+      densityLabel.textContent = densities[densityIndex].charAt(0).toUpperCase() + densities[densityIndex].slice(1);
+    });
+
+    // Modal
+    const modalOverlay = document.getElementById('modalOverlay');
+    document.getElementById('openModal').addEventListener('click', () => modalOverlay.classList.add('active'));
+    document.getElementById('closeModal').addEventListener('click', () => modalOverlay.classList.remove('active'));
+    document.getElementById('cancelModal').addEventListener('click', () => modalOverlay.classList.remove('active'));
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modalOverlay.classList.remove('active'); });
+  </script>
+
+</body>
+</html>

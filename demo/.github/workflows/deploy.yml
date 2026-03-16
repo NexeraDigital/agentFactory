@@ -1,0 +1,67 @@
+# VIOLATION FILE
+#
+# MISSING:
+#   - Staging slot deployment (deploys directly to production)
+#   - Health check after deployment
+#   - Rollback strategy
+#   - Environment protection rules
+
+name: Deploy TaskBoard
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AZURE_WEBAPP_NAME: taskboard-dev
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # MISSING: environment protection rules
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Build API
+        run: |
+          cd src/Api/TaskBoard.Api
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet publish --configuration Release --output ./publish
+
+      - name: Build Web
+        run: |
+          cd src/Web
+          npm ci
+          npm run build
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # VIOLATION: Deploys directly to production — no staging slot
+      # Should deploy to staging slot first, run health checks, then swap
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: src/Api/TaskBoard.Api/publish
+
+      # MISSING: Health check after deployment
+      # Should verify /health endpoint returns 200 before considering deploy successful
+
+      # MISSING: Rollback on failure
+      # Should swap back to previous slot if health check fails

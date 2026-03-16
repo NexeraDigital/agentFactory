@@ -1,0 +1,367 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook (Layer 2): Batch review of staged changes against .claude/rules/
+#
+# Runs claude --print on staged diffs grouped by domain. Blocks commit if CRITICAL
+# violations are detected. Exits gracefully if claude CLI is not available.
+#
+# Installed by /bootstrap-agents. Customized for your project's file patterns.
+
+set -euo pipefail
+
+# ─── Configuration ───────────────────────────────────────────────────────────
+
+# <!-- ADAPT: Adjust file patterns to match your project's conventions -->
+BACKEND_PATTERN='\.(cs|sql)$'
+BACKEND_EXCLUDE='[Tt]est'
+FRONTEND_PATTERN='\.(tsx?|css|scss)$'
+
+# Maximum files before skipping AI review (large merges, initial commits)
+MAX_FILES=50
+
+# Failure mode: "closed" blocks commit on AI error, "open" allows it through
+FAIL_MODE="${PRECOMMIT_FAIL_MODE:-closed}"
+
+# Log file for debugging AI responses
+LOG_DIR=".husky/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/last-review.log"
+
+# ─── Staged Files ────────────────────────────────────────────────────────────
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+FILE_COUNT=$(echo "$STAGED_FILES" | wc -l | tr -d ' ')
+
+if [ "$FILE_COUNT" -gt "$MAX_FILES" ]; then
+  echo "[pre-commit] $FILE_COUNT files staged — skipping AI review (threshold: $MAX_FILES)"
+  exit 0
+fi
+
+# ─── Claude CLI Check ────────────────────────────────────────────────────────
+
+CLAUDE_AVAILABLE=1
+if ! command -v claude &>/dev/null; then
+  echo "[pre-commit] claude CLI not found — AI review will be skipped"
+  CLAUDE_AVAILABLE=0
+fi
+
+# ─── Static Linters (uncomment and adapt) ────────────────────────────────────
+
+# <!-- ADAPT: Uncomment the linters that apply to your project -->
+
+# # .NET format check
+# if echo "$STAGED_FILES" | grep -qE '\.cs$'; then
+#   echo "[pre-commit] Running dotnet format..."
+#   dotnet format --verify-no-changes --include $(echo "$STAGED_FILES" | grep -E '\.cs$' | tr '\n' ' ') || {
+#     echo "[pre-commit] dotnet format found issues. Run 'dotnet format' to fix."
+#     exit 1
+#   }
+# fi
+
+# # ESLint check
+# if echo "$STAGED_FILES" | grep -qE '\.(tsx?|jsx?)$'; then
+#   echo "[pre-commit] Running eslint..."
+#   npx eslint $(echo "$STAGED_FILES" | grep -E '\.(tsx?|jsx?)$' | tr '\n' ' ') || {
+#     echo "[pre-commit] ESLint found issues. Run 'npx eslint --fix' to fix."
+#     exit 1
+#   }
+# fi
+
+# ─── Domain Grouping ─────────────────────────────────────────────────────────
+
+BACKEND_FILES=$(echo "$STAGED_FILES" | grep -E "$BACKEND_PATTERN" | grep -vE "$BACKEND_EXCLUDE" || true)
+FRONTEND_FILES=$(echo "$STAGED_FILES" | grep -E "$FRONTEND_PATTERN" || true)
+
+FOUND_CRITICAL=0
+
+# ─── Helper: check for CRITICAL in response ────────────────────────────────
+
+has_critical() {
+  echo "$1" | grep -iq "CRITICAL:"
+}
+
+has_warning() {
+  echo "$1" | grep -iq "WARNING:"
+}
+
+has_pass() {
+  echo "$1" | grep -iq "PASS:"
+}
+
+# ─── Helper: handle claude CLI failure ──────────────────────────────────────
+
+handle_review_failure() {
+  local domain="$1"
+  if [ "$FAIL_MODE" = "open" ]; then
+    echo "[pre-commit] claude review failed for $domain — allowing commit (FAIL_MODE=open)"
+    return 0
+  fi
+  echo ""
+  echo "══════════════════════════════════════════════════════════════"
+  echo "  COMMIT BLOCKED — AI review unavailable for $domain"
+  echo "══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "  The claude CLI command failed. The hook blocks by default"
+  echo "  to prevent unchecked code from being committed."
+  echo ""
+  echo "  Options:"
+  echo "    - Retry the commit"
+  echo "    - PRECOMMIT_FAIL_MODE=open git commit  (allow through)"
+  echo "    - git commit --no-verify               (skip all hooks)"
+  echo ""
+  return 1
+}
+
+# ─── Review Function ─────────────────────────────────────────────────────────
+
+review_domain() {
+  local domain="$1"
+  local files="$2"
+
+  if [ -z "$files" ]; then
+    return 0
+  fi
+
+  local file_count
+  file_count=$(echo "$files" | wc -l | tr -d ' ')
+  echo "[pre-commit] Reviewing $file_count $domain file(s)..."
+
+  local diff
+  diff=$(echo "$files" | xargs git diff --cached --)
+
+  local result
+  result=$(claude --print -p "You are a code review gate. Review this staged diff for CRITICAL violations of the rules in .claude/rules/.
+
+Focus on cross-file violations that per-edit hooks miss:
+- Layer dependency violations (Manager->Manager, Engine->Engine, Accessor->Accessor)
+- Missing user scoping across call chains
+- State synchronization across components
+- Cumulative growth (files exceeding size limits)
+
+Diff to review:
+$diff
+
+Response format — you MUST use one of these EXACT prefixes on the FIRST line:
+- If CRITICAL violations found: Start with 'CRITICAL:' then list each violation with rule ID
+- If only warnings: Start with 'WARNING:' then list concerns
+- If clean: Respond with exactly 'PASS: No critical violations found'
+
+Do NOT use markdown formatting, headers, or backticks before the prefix.
+Be concise. Only flag genuine violations, not style preferences." 2>/dev/null) || {
+    echo "[pre-commit] claude --print exited non-zero for $domain" >> "$LOG_FILE"
+    handle_review_failure "$domain"
+    return $?
+  }
+
+  # Log raw response for debugging
+  echo "=== $domain review $(date -Iseconds) ===" >> "$LOG_FILE"
+  echo "$result" >> "$LOG_FILE"
+  echo "" >> "$LOG_FILE"
+
+  # Check PASS first — PASS responses may contain words like "critical" in explanations
+  if has_pass "$result"; then
+    echo "[pre-commit] $domain: PASS"
+  elif has_critical "$result"; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo "  COMMIT BLOCKED — Critical violations in $domain files"
+    echo "══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "$result"
+    echo ""
+    echo "Fix the violations above and try again."
+    echo "To bypass: git commit --no-verify (not recommended)"
+    echo ""
+    return 1
+  elif has_warning "$result"; then
+    echo "[pre-commit] $domain warnings (non-blocking):"
+    echo "$result" | head -5
+  else
+    echo "[pre-commit] $domain: unexpected response format (see $LOG_FILE)"
+    handle_review_failure "$domain"
+    return $?
+  fi
+
+  return 0
+}
+
+# ─── Static Pattern Scan (deterministic, runs before AI) ─────────────────────
+
+CODE_FILES=$(echo "$STAGED_FILES" | grep -E '\.(cs|ts|tsx|js|jsx|py|go|java|sql|css|scss)$' || true)
+if [ -n "$CODE_FILES" ]; then
+  STAGED_DIFF=$(echo "$CODE_FILES" | xargs git diff --cached --)
+else
+  STAGED_DIFF=""
+fi
+
+static_scan() {
+  local violations=""
+
+  # SEC-005: SQL injection via string interpolation in C# ($"...{var}...")
+  # Matches added lines (+) containing $"...<SQL keyword>...{
+  local sql_injection
+  sql_injection=$(echo "$STAGED_DIFF" | grep -n '^+' | grep -v '^+++' | grep -iE '\$"[^"]*\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC)\b[^"]*\{' || true)
+  if [ -n "$sql_injection" ]; then
+    violations="${violations}\n  SEC-005 SQL injection — string interpolation in SQL:\n${sql_injection}\n"
+  fi
+
+  # SEC-005: SQL injection via string concatenation ("...+ variable...")
+  local sql_concat
+  sql_concat=$(echo "$STAGED_DIFF" | grep -n '^+' | grep -v '^+++' | grep -iE '"[^"]*\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|EXEC)\b[^"]*"\s*\+' || true)
+  if [ -n "$sql_concat" ]; then
+    violations="${violations}\n  SEC-005 SQL injection — string concatenation in SQL:\n${sql_concat}\n"
+  fi
+
+  # SEC-006: Connection strings or secrets in responses
+  local secret_leak
+  secret_leak=$(echo "$STAGED_DIFF" | grep -n '^+' | grep -v '^+++' | grep -iE '(password|secret|connectionstring|api[_-]?key)\s*=' | grep -ivE '(//|/\*|\*|config\.|GetConnectionString|GetSection|IConfiguration|appsettings|\.env)' || true)
+  if [ -n "$secret_leak" ]; then
+    violations="${violations}\n  SEC-006 Possible hardcoded secret:\n${secret_leak}\n"
+  fi
+
+  # SEC-001: BOLA/IDOR — direct entity lookup without user scoping in Accessor files
+  local accessor_files
+  accessor_files=$(echo "$CODE_FILES" | grep -i 'accessor' || true)
+  local accessor_diff=""
+  if [ -n "$accessor_files" ]; then
+    accessor_diff=$(echo "$accessor_files" | xargs git diff --cached -- 2>/dev/null || true)
+  fi
+  if [ -n "$accessor_diff" ]; then
+    local bola_find
+    bola_find=$(echo "$accessor_diff" | grep -n '^+' | grep -v '^+++' | grep -E '\.(FindAsync|Find)\s*\(' || true)
+    if [ -n "$bola_find" ]; then
+      violations="${violations}\n  SEC-001 Possible BOLA/IDOR — direct Find/FindAsync without user scoping in Accessor:\n${bola_find}\n"
+    fi
+  fi
+
+  if [ -n "$violations" ]; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo "  COMMIT BLOCKED — Static scan detected security violations"
+    echo "══════════════════════════════════════════════════════════════"
+    echo ""
+    echo -e "Violations found in staged diff:$violations"
+    echo "Fix the violations above and try again."
+    echo "To bypass: git commit --no-verify (not recommended)"
+    echo ""
+    return 1
+  fi
+
+  echo "[pre-commit] static scan: PASS"
+  return 0
+}
+
+static_scan || FOUND_CRITICAL=1
+
+# ─── Run AI Reviews ──────────────────────────────────────────────────────────
+
+# Skip AI review if static scan already blocked or claude not available
+if [ "$FOUND_CRITICAL" -ne 0 ]; then
+  echo "[pre-commit] Skipping AI review — static scan already found violations"
+elif [ "$CLAUDE_AVAILABLE" -eq 0 ]; then
+  echo "[pre-commit] Skipping AI review — claude CLI not available"
+else
+  review_domain "backend" "$BACKEND_FILES" || FOUND_CRITICAL=1
+  review_domain "frontend" "$FRONTEND_FILES" || FOUND_CRITICAL=1
+fi
+
+# ─── Sentinel Security Review ───────────────────────────────────────────────
+
+SECURITY_FILES=$(echo "$STAGED_FILES" | grep -E '\.(cs|ts|tsx|js|jsx|py|go|java|sql)$' || true)
+
+if [ "$FOUND_CRITICAL" -ne 0 ]; then
+  echo "[pre-commit] Skipping sentinel review — violations already found"
+elif [ "$CLAUDE_AVAILABLE" -eq 0 ]; then
+  echo "[pre-commit] Skipping sentinel review — claude CLI not available"
+elif [ -n "$SECURITY_FILES" ]; then
+  SECURITY_COUNT=$(echo "$SECURITY_FILES" | wc -l | tr -d ' ')
+  echo "[pre-commit] Running sentinel security review on $SECURITY_COUNT file(s)..."
+
+  SECURITY_DIFF=$(echo "$SECURITY_FILES" | xargs git diff --cached --)
+
+  # Load security baseline if it exists
+  BASELINE=""
+  if [ -f ".claude/security-baseline.md" ]; then
+    BASELINE=$(cat .claude/security-baseline.md)
+  fi
+
+  BASELINE_CONTEXT=""
+  if [ -n "$BASELINE" ]; then
+    BASELINE_CONTEXT="
+TASK 2 — REGRESSION CHECK:
+The following security baseline contains known findings. Check whether this diff re-introduces
+any pattern from an Active finding. Ignore Exempted findings — they are intentionally accepted.
+
+Security Baseline:
+$BASELINE
+
+If regressions found: Start with 'CRITICAL:' and reference the SENT-xxx ID(s)
+"
+  fi
+
+  SENTINEL_RESULT=$(claude --print -p "You are Sentinel, a security review gate. You have two tasks.
+
+TASK 1 — NEW VIOLATIONS:
+Review this staged diff for CRITICAL security violations only.
+
+Focus on:
+- SEC-001: Direct entity lookups without user scoping (BOLA/IDOR)
+- SEC-002: User-supplied identity trust
+- SEC-003: Missing user scoping on data operations
+- SEC-005: SQL/NoSQL injection (string concatenation in queries)
+- SEC-006: Secrets in responses or logs
+
+Diff:
+$SECURITY_DIFF
+$BASELINE_CONTEXT
+Response format — you MUST use one of these EXACT prefixes on the FIRST line:
+- If CRITICAL security violations or regressions: Start with 'CRITICAL:' then list each with rule ID (and SENT-xxx ID for regressions)
+- If only concerns: Start with 'WARNING:' then list
+- If clean: 'PASS: No security violations found'
+
+Do NOT use markdown formatting, headers, or backticks before the prefix.
+Be precise. Only flag genuine security vulnerabilities with evidence." 2>/dev/null) || {
+    echo "[pre-commit] claude --print exited non-zero for sentinel" >> "$LOG_FILE"
+    handle_review_failure "sentinel"
+    FOUND_CRITICAL=$?
+    SENTINEL_RESULT=""
+  }
+
+  # Log raw response for debugging
+  if [ -n "$SENTINEL_RESULT" ]; then
+    echo "=== sentinel review $(date -Iseconds) ===" >> "$LOG_FILE"
+    echo "$SENTINEL_RESULT" >> "$LOG_FILE"
+    echo "" >> "$LOG_FILE"
+  fi
+
+  # Check PASS first — PASS responses may contain words like "critical" in explanations
+  if [ -n "$SENTINEL_RESULT" ] && has_pass "$SENTINEL_RESULT"; then
+    echo "[pre-commit] sentinel: PASS"
+  elif [ -n "$SENTINEL_RESULT" ] && has_critical "$SENTINEL_RESULT"; then
+    echo ""
+    echo "══════════════════════════════════════════════════════════════"
+    echo "  COMMIT BLOCKED — Sentinel detected security violations"
+    echo "══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "$SENTINEL_RESULT"
+    echo ""
+    echo "Fix the violations above and try again."
+    echo "To bypass: git commit --no-verify (not recommended)"
+    echo ""
+    FOUND_CRITICAL=1
+  elif [ -n "$SENTINEL_RESULT" ] && has_warning "$SENTINEL_RESULT"; then
+    echo "[pre-commit] sentinel warnings (non-blocking):"
+    echo "$SENTINEL_RESULT" | head -5
+  elif [ -n "$SENTINEL_RESULT" ]; then
+    echo "[pre-commit] sentinel: unexpected response format (see $LOG_FILE)"
+    handle_review_failure "sentinel" && true
+    FOUND_CRITICAL=1
+  fi
+fi
+
+exit $FOUND_CRITICAL

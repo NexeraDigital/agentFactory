@@ -14,7 +14,7 @@ The agents are not decorative. They are opinionated, they have hard rules, and t
 
 ## The Agent Roster
 
-Eleven agents organized into three tiers based on when and how they engage.
+Ten agents organized into three tiers based on when and how they engage. Code cleanliness enforcement has been promoted to **rules** (`.claude/rules/`) that auto-load based on file type, backed by a **pre-commit hook** that batch-reviews staged changes before commit. This three-layer architecture (rules → pre-commit → skills + agents) provides continuous enforcement without consuming an agent invocation.
 
 ### Tier 1: Always-On Architects (Planning + Review)
 
@@ -52,17 +52,6 @@ These agents participate in **every planning session** and sit on the **post-com
 - **Planning Role:** Identifies security considerations early — auth requirements, data sensitivity, attack surface
 - **Review Role:** Audits for vulnerabilities, authorization bypasses, data exposure, and OWASP compliance
 - **Never Exits:** Reviews every change. Security is always relevant.
-
-#### Code Cleanliness
-- **Role:** Code hygiene reviewer
-- **Lens:** Code Aesthetics & Maintainability
-- **Core Question:** *"Is this small, cohesive, loosely coupled, and declarative?"*
-- **Scope:** All authored code — backend and frontend
-- **Owns:** Method length limits, class cohesion, coupling detection, nesting elimination, declarative style advocacy
-- **Key Behavior:** Opinionated but advisory — not a hard block. Counts executable lines. Flags methods over 15 lines. Pushes for guard clauses over nested ifs. Skeptical of abstraction layers.
-- **Planning Role:** Evaluates designs for cleanliness principles before code is written
-- **Review Role:** Reviews all authored code for hygiene. Provides Issues (must fix), Warnings (should fix), and Praise (reinforce good patterns).
-- **Never Exits:** Reviews every change. Code cleanliness is always relevant.
 
 ### Tier 2: Specialized Architects (Planning + Authoring)
 
@@ -186,10 +175,10 @@ Before writing code, the planning quorum reviews the proposed work:
 |-------|-------------|
 | Backend Architect | Code quality, patterns, architectural compliance (exits if frontend-only) |
 | React Architect | Component patterns, state management, TypeScript (exits if backend-only) |
-| Code Cleanliness | Method length, cohesion, coupling, nesting, style (always reviews) |
 | Sentinel | Security vulnerabilities, auth, data protection (always reviews) |
+| *Rules + Pre-commit* | *Code cleanliness (method length, cohesion, coupling, nesting) enforced automatically via `.claude/rules/` and pre-commit hook* |
 
-Reviewers run in **parallel**. Each produces independent findings. If an agent has nothing relevant to say, it exits with no findings.
+Reviewers run in **parallel**. Each produces independent findings. If an agent has nothing relevant to say, it exits with no findings. Code cleanliness is enforced continuously through rules and the pre-commit hook rather than a dedicated review agent — use the `/review-cleanliness` skill for batch review of staged changes.
 
 ### Stage 4: On-Demand
 
@@ -204,22 +193,22 @@ Reviewers run in **parallel**. Each produces independent findings. If an agent h
 
 R = Responsible (does the work), A = Accountable (owns the outcome), C = Consulted (provides input), I = Informed (needs to know)
 
-| Activity | Backend Arch | React Arch | Structural Arch | Infra Arch | SQL Data Arch | Table Storage Arch | Sentinel | Code Clean | Modern UI | Data Clarifier | Debug Inv |
-|----------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| New backend feature (SQL) | R | I | C | C | C/R | — | C | — | — | — | — |
-| New backend feature (Table Storage) | R | I | C | C | — | C/R | C | — | — | — | — |
-| New frontend feature | I | R/A | — | — | — | — | C | — | C | — | — |
-| New full-stack feature | R | R | C | C | C* | C* | C | — | C | — | — |
-| Infrastructure change | I | — | — | R/A | — | — | C | — | — | — | — |
-| Schema design / migration | C | — | — | — | R/A | — | C | — | — | — | — |
-| Partition key design | C | — | — | — | — | R/A | C | — | — | — | — |
-| Bug investigation | C | C | — | — | — | — | — | — | — | — | R/A |
-| Data-layer code review | R | — | C | — | R* | R* | R | R | — | — | — |
-| Frontend code review | — | R | — | — | — | — | R | R | — | — | — |
-| Security audit | C | C | — | C | C | C | R/A | — | — | — | — |
-| Data-heavy UI design | — | C | — | — | — | — | — | — | C | R/A | — |
-| Architecture decision | C | C | R/A | C | C* | C* | C | — | — | — | — |
-| Refactoring | R | R | C | — | — | — | C | A | — | — | — |
+| Activity | Backend Arch | React Arch | Structural Arch | Infra Arch | SQL Data Arch | Table Storage Arch | Sentinel | Modern UI | Data Clarifier | Debug Inv |
+|----------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| New backend feature (SQL) | R | I | C | C | C/R | — | C | — | — | — |
+| New backend feature (Table Storage) | R | I | C | C | — | C/R | C | — | — | — |
+| New frontend feature | I | R/A | — | — | — | — | C | C | — | — |
+| New full-stack feature | R | R | C | C | C* | C* | C | C | — | — |
+| Infrastructure change | I | — | — | R/A | — | — | C | — | — | — |
+| Schema design / migration | C | — | — | — | R/A | — | C | — | — | — |
+| Partition key design | C | — | — | — | — | R/A | C | — | — | — |
+| Bug investigation | C | C | — | — | — | — | — | — | — | R/A |
+| Data-layer code review | R | — | C | — | R* | R* | R | — | — | — |
+| Frontend code review | — | R | — | — | — | — | R | — | — | — |
+| Security audit | C | C | — | C | C | C | R/A | — | — | — |
+| Data-heavy UI design | — | C | — | — | — | — | — | C | R/A | — |
+| Architecture decision | C | C | R/A | C | C* | C* | C | — | — | — |
+| Refactoring | R | R | C | — | — | — | C | — | — | — |
 
 *\* = only when that persistence model is in use in the project*
 
@@ -227,86 +216,73 @@ R = Responsible (does the work), A = Accountable (owns the outcome), C = Consult
 
 ## Project Profiles
 
-Not every project needs all nine agents. Select the profile that matches your project type, then add agents as complexity grows.
+Not every project needs all ten agents. Select the profile that matches your project type, then add agents as complexity grows. Code cleanliness rules apply to ALL profiles via `.claude/rules/` — they are not tied to a specific agent.
 
 ### Full-Stack Web Application
-**Up to 11 agents.** This is the default profile for projects with a backend API, frontend SPA, and cloud deployment. Include data agents based on which persistence model(s) the project uses (SQL, Table Storage, or both).
+**Up to 10 agents.** This is the default profile for projects with a backend API, frontend SPA, and cloud deployment. Include data agents based on which persistence model(s) the project uses (SQL, Table Storage, or both).
 
 ### API-Only Service
-**Up to 8 agents.** Drop React Architect, Modern UI Agent, and Data Clarifier. Include data agents based on persistence model.
+**Up to 7 agents.** Drop React Architect, Modern UI Agent, and Data Clarifier. Include data agents based on persistence model.
 - Backend Architect, Structural Architect, Infrastructure Architect
 - SQL Data Architect and/or Table Storage Architect (based on persistence model)
-- Sentinel, Code Cleanliness, Debug Investigator
+- Sentinel, Debug Investigator
 
 ### Frontend-Only Application
-**6 agents.** Drop Backend Architect, Structural Architect (unless frontend has its own architectural paradigm), Infrastructure Architect (unless deploying to cloud), and both data agents.
+**5 agents.** Drop Backend Architect, Structural Architect (unless frontend has its own architectural paradigm), Infrastructure Architect (unless deploying to cloud), and both data agents.
 - React Architect, Modern UI Agent, Data Clarifier
-- Sentinel, Code Cleanliness, Debug Investigator
+- Sentinel, Debug Investigator
 
 ### Minimal (Small Scripts / Utilities)
-**3 agents.** Core quality without ceremony.
-- Code Cleanliness, Sentinel, Debug Investigator
+**2 agents.** Core quality without ceremony.
+- Sentinel, Debug Investigator
 
 ---
 
 ## Adaptation Guide
 
-When injecting this methodology into a new project, follow these steps.
+Run `/bootstrap-agents` in a target project to automatically set up the complete `.claude/` ecosystem. The bootstrap skill:
 
-**Template files location:** `C:\github\nexera\templates\agents\`
+1. **Reads all templates** — agents, rules, skills, hooks, CLAUDE.md
+2. **Auto-detects the project** — backend, frontend, infrastructure, data persistence, testing
+3. **Asks 2-4 clarifying questions** — only what it can't detect
+4. **Creates rules** — customized `.claude/rules/` files with project-specific file globs
+5. **Creates pre-commit hook** — Husky (Node.js) or `.git/hooks/` with project-specific file patterns
+6. **Creates agents** — customized `.claude/agents/` files with project context injected
+7. **Creates skills** — `/debug-investigate`, `/clarify-data`, `/review-cleanliness`
+8. **Creates memory, CLAUDE.md, reference docs** — with two-tier memory guidance
+9. **Presents verification summary** — lists everything created with the three-layer architecture
 
-### Step 1: Choose Your Profile
-Select a project profile from above. This determines which agents to create.
+The bootstrap skill is defined in `.claude/skills/bootstrap-agents/SKILL.md`.
 
-### Step 2: Copy Agent Templates
-Copy the relevant agent `.md` files from `templates/agents/` into your project's `.claude/agents/` directory:
+### Three-Layer Review Architecture
+
+The enforcement architecture creates three layers of quality gates, from zero-cost rule loading through blocking pre-commit review to on-demand specialists:
+
+| Layer | Mechanism | When It Fires | What It Catches |
+|-------|-----------|---------------|-----------------|
+| **1. Rules** | `.claude/rules/*.md` with `paths:` frontmatter | Auto-loaded when matching files are in context | Domain-specific patterns (React anti-patterns, SQL anti-patterns, etc.) |
+| **2. Pre-commit** | `templates/hooks/pre-commit` via Husky or git hooks | On `git commit` (any editor, any developer) | Cross-file violations, non-Claude edits, cumulative growth — blocks commit on CRITICAL |
+| **3. Skills + Agents** | `/review-cleanliness`, specialized agents in `.claude/agents/` | On demand (before commit, during review, planning sessions) | Comprehensive cleanliness sweep, architectural decisions, security audits, design guidance |
+
+### Manual Setup
+
+If you prefer manual setup over `/bootstrap-agents`, the template files are organized as:
 
 ```
-templates/agents/              →  .claude/agents/
-├── backend-architect.md       →  backend-architect.md
-├── react-architect.md         →  react-architect.md
-├── idesign-architect.md       →  idesign-architect.md
-├── azure-architect.md         →  azure-architect.md
-├── sql-data-architect.md      →  sql-data-architect.md      (if using SQL)
-├── table-storage-architect.md →  table-storage-architect.md  (if using Table Storage)
-├── sentinel.md                →  sentinel.md
-├── code-cleanliness.md        →  code-cleanliness.md
-├── modern-ui-agent.md         →  modern-ui-agent.md
-├── data-clarifier.md          →  data-clarifier.md
-└── debug-investigator.md      →  debug-investigator.md
+.claude/
+  agents/       — 10 agent templates with <!-- ADAPT --> markers
+  rules/        — 9 rules templates (4 always-loaded, 5 with <!-- ADAPT --> globs)
+  skills/       — 4 skill templates (bootstrap, debug-investigate, clarify-data, review-cleanliness)
+templates/
+  hooks/
+    pre-commit  — Pre-commit hook template with <!-- ADAPT --> markers
+CLAUDE.md       — Project CLAUDE.md template
+docs/
+  design-system.md  — Design system reference template
+  architecture.md   — Architecture overview template
 ```
 
-Each template contains the full agent methodology with `<!-- ADAPT -->` comment markers where project-specific content needs to be injected. The core methodology (80-90% of each file) is ready to use as-is.
-
-### Step 3: Inject Project Context
-Each agent needs project-specific adaptation:
-
-| Agent | What to Customize |
-|-------|-------------------|
-| Backend Architect | Language/framework, architectural patterns, error handling conventions |
-| React Architect | Specific React version, state management library, routing solution, folder structure, installed packages |
-| Structural Architect | Rename to match paradigm (e.g., "iDesign Architect"). Inject layer definitions, forbidden dependencies, valid dependency directions |
-| Infrastructure Architect | Rename to match cloud provider. Inject resource inventory, deployment topology, secrets inventory, CI/CD patterns |
-| SQL Data Architect | Database tier, ORM choice, migration strategy, multi-tenancy pattern, key domains and tables |
-| Table Storage Architect | Storage account details, key entities with PartitionKey/RowKey design, access patterns, Cosmos DB migration plans |
-| Sentinel | Auth mechanism, data access patterns, user identity extraction, CORS configuration, integration points |
-| Code Cleanliness | Project-specific conventions (zero-warnings policy, linting rules, formatting standards) |
-| Modern UI Agent | Design system specifics (brand colors, typography choices, component library) |
-| Data Clarifier | Domain-specific data patterns (what are the large datasets, what are the key entities) |
-| Debug Investigator | Mostly project-agnostic — may add project-specific debugging tips as they're discovered |
-
-### Step 4: Define Workflow in CLAUDE.md
-Add an "Agent Workflow" section to your project's `CLAUDE.md` that defines:
-- Which agents participate in planning
-- Which agents are on the review team
-- Which agents are on-demand
-- Any project-specific workflow rules
-
-### Step 5: Enable Agent Memory
-For agents that benefit from institutional knowledge (Code Cleanliness, React Architect, Data Clarifier, etc.):
-- Create `.claude/agent-memory/<agent-name>/MEMORY.md`
-- Configure the `memory: project` frontmatter option
-- Agents will accumulate project-specific patterns, decisions, and lessons across sessions
+Each template file contains `<!-- ADAPT -->` markers where project-specific customization is needed. The core methodology (80-90% of each file) is ready to use as-is.
 
 ---
 
@@ -318,7 +294,7 @@ For agents that benefit from institutional knowledge (Code Cleanliness, React Ar
 
 3. **Evidence over intuition.** Findings cite specific code, specific rules, specific principles. "This feels wrong" is not a finding.
 
-4. **Advisory, not blocking (mostly).** Code Cleanliness is advisory. Sentinel findings on critical vulnerabilities ARE blocking. The team knows the difference.
+4. **Advisory, not blocking (mostly).** Rules flag violations but are advisory. Sentinel findings on critical vulnerabilities ARE blocking. The team knows the difference.
 
 5. **Exit gracefully.** If an agent has nothing relevant to say about a change, it exits with no findings. No filler, no "everything looks good from my perspective" padding.
 
