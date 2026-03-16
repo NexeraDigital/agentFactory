@@ -30,9 +30,8 @@ Step-by-step walkthrough demonstrating all 10 agents, 9 rule sets, 5 skills, pre
 
 ### 1a. Backend rules in action
 
-1. Open `src/Api/TaskBoard.Api/Managers/DashboardManager.cs`
-2. Ask Claude: "Review this file"
-3. Observe rules triggered:
+1. Ask Claude: "Review the file src/Api/TaskBoard.Api/Managers/DashboardManager.cs"
+2. Observe rules triggered:
    - `idesign.md` → flags Manager → Manager dependency (ID-001)
    - `universal.md` → flags silent fallback (UNI-001), long method (UNI-002), nested ifs (UNI-003)
    - `backend.md` → flags default return on failure (BE-001)
@@ -42,17 +41,15 @@ Step-by-step walkthrough demonstrating all 10 agents, 9 rule sets, 5 skills, pre
 
 ### 1b. Frontend rules in action
 
-1. Open `src/Web/src/components/Layout/Sidebar.tsx`
-2. Ask Claude: "Review this component"
-3. Observe design system rules flagging:
+1. Ask Claude: "Review the file src/Web/src/components/Layout/Sidebar.tsx"
+2. Observe design system rules flagging:
    - Saturated dark background violating design-system.md
    - Missing hover states
 
 ### 1c. SQL rules in action
 
-1. Open `sql/001-create-tables.sql`
-2. Ask Claude: "Review this schema"
-3. Observe: `sql.md` → flags GUID clustered primary key (SQL-001)
+1. Ask Claude: "Review the file sql/001-create-tables.sql"
+2. Observe: `sql.md` → flags GUID clustered primary key (SQL-001)
 
 **Key talking point:** Rules auto-load based on file type. No manual configuration needed. Claude applies the right rules to the right files.
 
