@@ -23,7 +23,7 @@ The family currently spans five categories, all sharing the pattern below. Pick 
 | Architecture | `BOOTSTRAP_ARCHITECTURE_AGENTS.md` | requirements-analyst, architecture-designer, dependency-auditor, tradeoff-skeptic, design-recorder, architecture-lead | `.ai/architecture/PROTOCOL.md` | `docs/architecture-decisions/TEMPLATE.md` |
 | Design (UI/UX) | `BOOTSTRAP_DESIGN_AGENTS.md` | ux-researcher, ia-designer, visual-designer, a11y-skeptic, design-system-recorder, design-lead | `.ai/design/PROTOCOL.md` | `docs/design-decisions/TEMPLATE.md` |
 | Implementation | `BOOTSTRAP_IMPLEMENTATION_AGENTS.md` | spec-analyst, implementer, test-author, code-skeptic, integration-validator, delivery-lead | `.ai/implementation/PROTOCOL.md` | `docs/implementation-notes/TEMPLATE.md` |
-| Security | `BOOTSTRAP_SECURITY_AGENTS.md` | threat-modeler, vuln-hunter, exploit-skeptic, remediation-designer, security-validator, security-lead | `.ai/security/PROTOCOL.md` | `docs/security-findings/TEMPLATE.md` |
+| Security | `BOOTSTRAP_SECURITY_AGENTS.md` | threat-modeler, vuln-hunter, exploit-skeptic, remediation-designer, security-validator, sentinel | `.ai/security/PROTOCOL.md` | `docs/security-findings/TEMPLATE.md` |
 
 ## Shared pattern
 

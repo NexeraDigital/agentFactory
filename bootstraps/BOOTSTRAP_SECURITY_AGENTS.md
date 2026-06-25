@@ -50,7 +50,7 @@ The authoritative artifacts are:
 Rules for handling references:
 
 - The `vuln-hunter` MUST read `.claude/security-baseline.md` before reporting, to avoid re-reporting known or risk-accepted findings.
-- The `security-validator` and the `security-lead` READ and UPDATE the baseline ledger as findings are confirmed, fixed, or accepted.
+- The `security-validator` and the `sentinel` (security lead) READ and UPDATE the baseline ledger as findings are confirmed, fixed, or accepted.
 - The small `security-universal.md` rule table (SEC-001…SEC-006, under 60 lines) MAY be folded into the `vuln-hunter` prompt as the hunting checklist. The baseline ledger and the rule file remain the source of truth.
 - Do NOT duplicate the contents of the baseline ledger into agent prompts or `.codex/agents/*.toml`.
 - If `.claude/security-baseline.md` does not exist, the `security-validator` creates it from the project's baseline template when recording the first finding.
@@ -290,7 +290,7 @@ CLAUDE.md
 .claude/agents/exploit-skeptic.md
 .claude/agents/remediation-designer.md
 .claude/agents/security-validator.md
-.claude/agents/security-lead.md
+.claude/agents/sentinel.md
 ```
 
 If Codex is detected or optional adapters are being created:
@@ -302,7 +302,7 @@ If Codex is detected or optional adapters are being created:
 .codex/agents/exploit-skeptic.toml
 .codex/agents/remediation-designer.toml
 .codex/agents/security-validator.toml
-.codex/agents/security-lead.toml
+.codex/agents/sentinel.toml
 ```
 
 ---
@@ -355,9 +355,9 @@ When using subagents, use these logical roles:
 3. Exploit Skeptic
 4. Remediation Designer
 5. Security Validator
-6. Security Lead
+6. Sentinel (Security Lead)
 
-The Security Lead owns the stop condition. A security task is not done until confirmed findings are remediated and validated, or a human risk-acceptance decision is documented in the baseline.
+Sentinel owns the stop condition. A security task is not done until confirmed findings are remediated and validated, or a human risk-acceptance decision is documented in the baseline.
 ```
 
 ---
@@ -619,7 +619,7 @@ Default security flow:
 3. Use `exploit-skeptic` to verify exploitability and reduce false positives.
 4. Use `remediation-designer` to apply the smallest safe fix for confirmed findings.
 5. Use `security-validator` to confirm the vector is closed and update the baseline.
-6. Use `security-lead` to decide whether the Definition of Done is satisfied.
+6. Use `sentinel` to decide whether the Definition of Done is satisfied.
 
 Do not confirm a finding without a concrete attack path, and do not claim a fix without re-testing the vector.
 ```
@@ -993,20 +993,20 @@ State whether the Definition of Done from .ai/security/PROTOCOL.md is satisfied.
 
 ---
 
-## Claude Subagent: security-lead
+## Claude Subagent: sentinel
 
 Create:
 
 ```text
-.claude/agents/security-lead.md
+.claude/agents/sentinel.md
 ```
 
 with:
 
 ```markdown
 ---
-name: security-lead
-description: Use to coordinate a security task, enforce the protocol state machine, delegate to specialized agents, and decide whether the security Definition of Done is satisfied.
+name: sentinel
+description: Senior security research agent. Use to coordinate a security task, enforce the protocol state machine, delegate to specialized agents, and decide whether the security Definition of Done is satisfied.
 tools: Agent, Read, Grep, Glob, Bash
 model: sonnet
 effort: xhigh
@@ -1016,7 +1016,7 @@ background: false
 color: red
 ---
 
-You are the Security Lead.
+You are Sentinel, the security lead.
 
 Your system role is orchestration and stop-condition enforcement.
 
@@ -1495,26 +1495,26 @@ Replace the `model` value with the selected Codex model if different.
 
 ---
 
-## Codex Subagent: security-lead
+## Codex Subagent: sentinel
 
 Create:
 
 ```text
-.codex/agents/security-lead.toml
+.codex/agents/sentinel.toml
 ```
 
 ```toml
-name = "security_lead"
-description = "Security coordinator that enforces the state machine and the security Definition of Done."
+name = "sentinel"
+description = "Senior security research agent that enforces the state machine and the security Definition of Done."
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 model_reasoning_summary = "concise"
 model_verbosity = "medium"
 sandbox_mode = "read-only"
-nickname_candidates = ["Warden", "Marshal", "Sentinel"]
+nickname_candidates = ["Warden", "Marshal", "Overseer"]
 
 developer_instructions = """
-You are the Security Lead.
+You are Sentinel, the security lead.
 
 Your system role is orchestration and stop-condition enforcement.
 
@@ -1620,7 +1620,7 @@ Use:
 - exploit-skeptic
 - remediation-designer
 - security-validator
-- security-lead
+- sentinel
 
 Do not stop until confirmed findings are remediated and validated, or risk-accepted with a documented decision.
 
